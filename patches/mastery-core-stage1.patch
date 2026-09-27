@@ -1,0 +1,89 @@
+diff --git a/src/server/game/Entities/Item/ItemTemplate.h b/src/server/game/Entities/Item/ItemTemplate.h
+--- a/src/server/game/Entities/Item/ItemTemplate.h
++++ b/src/server/game/Entities/Item/ItemTemplate.h
+@@
+-    ITEM_MOD_SPELL_PENETRATION        = 47,
+-    ITEM_MOD_BLOCK_VALUE              = 48
++    ITEM_MOD_SPELL_PENETRATION        = 47,
++    ITEM_MOD_BLOCK_VALUE              = 48,
++    ITEM_MOD_MASTERY_RATING           = 49
+ };
+ 
+-#define MAX_ITEM_MOD                    49
++#define MAX_ITEM_MOD                    50
+
+diff --git a/src/server/game/Entities/Player/Player.h b/src/server/game/Entities/Player/Player.h
+--- a/src/server/game/Entities/Player/Player.h
++++ b/src/server/game/Entities/Player/Player.h
+@@
+     void ApplyRatingMod(CombatRating cr, int32 value, bool apply);
+     void UpdateRating(CombatRating cr);
+     void UpdateAllRatings();
++
++    // Mastery is intentionally server-side on the 3.3.5 client. Do not append it
++    // to PLAYER_FIELD_COMBAT_RATING_1: the WotLK update-field array has only 25
++    // combat-rating slots and index 25 would overlap the next player field.
++    void ApplyMasteryRatingBonus(int32 amount, bool apply);
++    void UpdateMastery();
++    [[nodiscard]] int32 GetMasteryRating() const { return m_masteryRating; }
++    [[nodiscard]] float GetMastery() const { return m_mastery; }
+@@
+     float m_auraBaseFlatMod[BASEMOD_END];
+     float m_auraBasePctMod[BASEMOD_END];
+     int32 m_baseRatingValue[MAX_COMBAT_RATING];
++    int32 m_masteryRating;
++    float m_mastery;
+     uint32 m_baseSpellPower;
+
+diff --git a/src/server/game/Entities/Player/Player.cpp b/src/server/game/Entities/Player/Player.cpp
+--- a/src/server/game/Entities/Player/Player.cpp
++++ b/src/server/game/Entities/Player/Player.cpp
+@@
+     for (uint8 i = 0; i < MAX_COMBAT_RATING; i++)
+         m_baseRatingValue[i] = 0;
++
++    m_masteryRating = 0;
++    m_mastery = 8.0f;
+ 
+     m_baseSpellPower = 0;
+@@
+             case ITEM_MOD_BLOCK_VALUE:
+                 HandleBaseModFlatValue(SHIELD_BLOCK_VALUE, float(val), apply);
+                 break;
++            case ITEM_MOD_MASTERY_RATING:
++                ApplyMasteryRatingBonus(int32(val), apply);
++                break;
+             /// @deprecated item mods
+
+diff --git a/src/server/game/Entities/Unit/StatSystem.cpp b/src/server/game/Entities/Unit/StatSystem.cpp
+--- a/src/server/game/Entities/Unit/StatSystem.cpp
++++ b/src/server/game/Entities/Unit/StatSystem.cpp
+@@
+ bool Player::UpdateAllStats()
+ {
+@@
+     UpdateAllRatings();
++    UpdateMastery();
+     UpdateAllCritPercentages();
+@@
+     return true;
+ }
++
++void Player::ApplyMasteryRatingBonus(int32 amount, bool apply)
++{
++    m_masteryRating += apply ? amount : -amount;
++
++    // Defensive clamp for malformed item data / repeated remove calls.
++    if (m_masteryRating < 0)
++        m_masteryRating = 0;
++
++    UpdateMastery();
++}
++
++void Player::UpdateMastery()
++{
++    // MoP characters have 8 base Mastery points. Rating conversion is kept
++    // separate from WotLK combat-rating update fields and will be wired to the
++    // MoP rating table in the next stage.
++    m_mastery = 8.0f;
++}
