@@ -212,7 +212,7 @@ namespace
         {
             if (Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr)
                 if (Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::ROGUE_SUBTLETY))
-                    amount = int32(Acore::Mastery::GetMastery(player) * 2.50f);
+                    amount = int32(Acore::Mastery::GetMastery(player) * 3.00f);
         }
 
         void Register() override
@@ -282,7 +282,7 @@ namespace
         {
             if (Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr)
                 if (Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::SHAMAN_ENHANCEMENT))
-                    amount = int32(Acore::Mastery::GetMastery(player) * 2.50f);
+                    amount = int32(Acore::Mastery::GetMastery(player) * 2.00f);
         }
 
         void Register() override
@@ -317,7 +317,7 @@ namespace
         {
             if (Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr)
                 if (Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::DRUID_BALANCE))
-                    amount = int32(Acore::Mastery::GetMastery(player) * 1.87f);
+                    amount = int32(Acore::Mastery::GetMastery(player) * 1.875f);
         }
 
         void Register() override
@@ -419,27 +419,28 @@ namespace
         void HandleAfterHit()
         {
             Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr;
-            Unit* target = GetHitUnit();
-            if (!player || !target)
+            if (!player)
                 return;
 
             if (!Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::DEATH_KNIGHT_BLOOD) || !player->HasAura(SPELL_DK_BLOOD_PRESENCE))
                 return;
 
-            float multiplier = Acore::Mastery::GetMastery(player) * 6.25f / 100.0f;
+            // 45470 is Death Strike's self-heal component. Blood Shield is based
+            // only on that heal and is always applied to the Death Knight.
             int32 baseHeal = GetHitHeal();
             if (baseHeal <= 0)
-                baseHeal = GetHitDamage();
+                return;
 
+            float multiplier = Acore::Mastery::GetMastery(player) * 6.25f / 100.0f;
             int32 absorb = int32(float(baseHeal) * multiplier);
             if (absorb <= 0)
                 return;
 
-            if (AuraEffect* existing = target->GetAuraEffect(SPELL_MASTERY_BLOOD_SHIELD, EFFECT_0, player->GetGUID()))
+            if (AuraEffect* existing = player->GetAuraEffect(SPELL_MASTERY_BLOOD_SHIELD, EFFECT_0, player->GetGUID()))
                 absorb += existing->GetAmount();
 
-            absorb = std::min<int32>(absorb, int32(target->GetMaxHealth()));
-            player->CastCustomSpell(target, SPELL_MASTERY_BLOOD_SHIELD, &absorb, nullptr, nullptr, true);
+            absorb = std::min<int32>(absorb, int32(player->GetMaxHealth()));
+            player->CastCustomSpell(player, SPELL_MASTERY_BLOOD_SHIELD, &absorb, nullptr, nullptr, true);
         }
 
         void Register() override
@@ -505,7 +506,7 @@ namespace
             if (damage <= 0)
                 return;
 
-            int32 bonus = int32(float(damage) * Acore::Mastery::GetMastery(player) * 2.10f / 100.0f);
+            int32 bonus = int32(float(damage) * Acore::Mastery::GetMastery(player) * 1.85f / 100.0f);
             if (bonus > 0)
                 player->CastCustomSpell(target, SPELL_MASTERY_HAND_OF_LIGHT, &bonus, nullptr, nullptr, true);
         }
