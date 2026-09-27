@@ -79,6 +79,10 @@ public:
         uint32 activeMastery = Acore::Mastery::GetMasterySpecializationSpell(player);
         uint32 expectedMastery = Acore::Mastery::GetExpectedMasterySpecializationSpell(player);
         int32 rating = Acore::Mastery::GetMasteryRating(player);
+        float dbcRatingRatio = Acore::Mastery::GetMasteryRatingRatioFromDBC(player);
+        float effectiveRatingRatio = Acore::Mastery::GetMasteryRatingRatio(player);
+        float dbcClassScalar = Acore::Mastery::GetMasteryClassScalarFromDBC(player);
+        float effectiveClassScalar = Acore::Mastery::GetMasteryClassScalar(player);
         float ratingBonus = Acore::Mastery::GetMasteryRatingBonus(player);
         float auraBonus = Acore::Mastery::GetMasteryAuraBonus(player);
         float totalMastery = Acore::Mastery::GetMastery(player);
@@ -93,6 +97,10 @@ public:
         handler->PSendSysMessage("Active Mastery aura: {} ({}) | Synchronized: {}",
             GetMasterySpecializationName(activeMastery), activeMastery, synchronized ? "Yes" : "NO");
         handler->PSendSysMessage("Mastery Rating: {}", rating);
+        handler->PSendSysMessage("Rating DBC key: {} | DBC ratio: {:.6f} | Effective ratio: {:.6f}",
+            Acore::Mastery::GetMasteryRatingLookupIndex(player), dbcRatingRatio, effectiveRatingRatio);
+        handler->PSendSysMessage("Class scalar DBC key: {} | DBC scalar: {:.6f} | Effective scalar: {:.6f}",
+            Acore::Mastery::GetMasteryClassScalarLookupIndex(player), dbcClassScalar, effectiveClassScalar);
         handler->PSendSysMessage("Base Mastery: {:.3f}", available ? Acore::Mastery::BASE_MASTERY : 0.0f);
         handler->PSendSysMessage("Rating bonus: {:.3f}", ratingBonus);
         handler->PSendSysMessage("Aura 318 bonus: {:.3f}", auraBonus);
