@@ -24,7 +24,9 @@ DELETE FROM `spell_script_names` WHERE `ScriptName` IN (
     'spell_mastery_blood_shield',
     'spell_mastery_ignite',
     'spell_mastery_hand_of_light',
-    'spell_mastery_elemental_overload'
+    'spell_mastery_elemental_overload',
+    'spell_mastery_illuminated_healing',
+    'spell_mastery_echo_of_light'
 );
 
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
@@ -35,6 +37,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (12880, 'spell_mastery_unshackled_fury'),
 
 -- Paladin mastery passives / triggers
+(76669, 'spell_mastery_illuminated_healing'),
 (76671, 'spell_mastery_divine_bulwark'),
 (35395, 'spell_mastery_hand_of_light'),
 (53595, 'spell_mastery_hand_of_light'),
@@ -51,8 +54,9 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (76806, 'spell_mastery_main_gauche'),
 (76808, 'spell_mastery_executioner'),
 
--- Priest mastery passive + absorb triggers
+-- Priest mastery passives + absorb triggers
 (77484, 'spell_mastery_shield_discipline_passive'),
+(77485, 'spell_mastery_echo_of_light'),
 (17,     'spell_mastery_shield_discipline'),
 (123258, 'spell_mastery_shield_discipline'),
 (114908, 'spell_mastery_shield_discipline'),
