@@ -377,7 +377,9 @@ enum AuraType
     SPELL_AURA_PREVENT_RESURRECTION                         = 314,
     SPELL_AURA_UNDERWATER_WALKING                           = 315,
     SPELL_AURA_PERIODIC_HASTE                               = 316,
-    TOTAL_AURAS                                             = 317
+    SPELL_AURA_317                                          = 317,
+    SPELL_AURA_MASTERY                                      = 318,
+    TOTAL_AURAS                                             = 319
 };
 
 enum AuraObjectType
