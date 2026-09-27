@@ -6,6 +6,7 @@
 
 #include "Mastery.h"
 #include "Player.h"
+#include "Random.h"
 #include "ScriptMgr.h"
 #include "SpellAuraEffects.h"
 #include "SpellScript.h"
