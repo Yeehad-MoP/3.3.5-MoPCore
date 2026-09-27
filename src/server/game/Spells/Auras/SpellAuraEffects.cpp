@@ -379,6 +379,8 @@ pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS] =
     &AuraEffect::HandlePreventResurrection,                       //314 SPELL_AURA_PREVENT_RESURRECTION todo
     &AuraEffect::HandleNoImmediateEffect,                         //315 SPELL_AURA_UNDERWATER_WALKING todo
     &AuraEffect::HandleNoImmediateEffect,                         //316 SPELL_AURA_PERIODIC_HASTE implemented in AuraEffect::CalculatePeriodic
+    &AuraEffect::HandleNoImmediateEffect,                         //317 SPELL_AURA_317 (MoP: SPELL_AURA_MOD_SPELL_POWER_PCT) not implemented yet
+    &AuraEffect::HandleNoImmediateEffect,                         //318 SPELL_AURA_MASTERY evaluated on demand by Mastery helpers
 };
 
 AuraEffect::AuraEffect(Aura* base, uint8 effIndex, int32* baseAmount, Unit* caster):
