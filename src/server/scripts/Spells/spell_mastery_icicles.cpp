@@ -10,6 +10,7 @@
 #include "SpellScript.h"
 #include "SpellScriptLoader.h"
 #include <array>
+#include <limits>
 
 namespace
 {
@@ -46,7 +47,6 @@ namespace
         if (!player || !target || damage <= 0)
             return;
 
-        // Prefer an empty storage aura.
         for (uint32 storageSpell : IcicleStorageSpells)
         {
             if (!player->HasAura(storageSpell))
@@ -56,9 +56,6 @@ namespace
             }
         }
 
-        // Five Icicles are already stored. Retail launches the oldest Icicle
-        // when another is generated, then stores the new one. Use Aura apply
-        // time to preserve that FIFO behavior.
         uint32 oldestSpell = IcicleStorageSpells.front();
         time_t oldestApplyTime = std::numeric_limits<time_t>::max();
 
@@ -78,8 +75,6 @@ namespace
         player->CastCustomSpell(player, oldestSpell, &damage, nullptr, nullptr, true);
     }
 
-    // Frostbolt / Frostfire Bolt generate Icicles worth 2% of post-hit damage
-    // per Mastery point. Eight base Mastery therefore stores 16%, matching 5.4.
     class spell_mastery_icicles_store : public SpellScript
     {
         PrepareSpellScript(spell_mastery_icicles_store);
@@ -108,7 +103,6 @@ namespace
         }
     };
 
-    // Ice Lance releases every stored Icicle at its current target.
     class spell_mastery_icicles_launch : public SpellScript
     {
         PrepareSpellScript(spell_mastery_icicles_launch);
