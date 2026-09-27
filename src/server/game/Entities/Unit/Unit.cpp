@@ -43,6 +43,7 @@
 #include "Group.h"
 #include "Log.h"
 #include "MapMgr.h"
+#include "Mastery.h"
 #include "MoveSpline.h"
 #include "MoveSplineInit.h"
 #include "MovementGenerator.h"
@@ -8470,6 +8471,22 @@ float Unit::SpellPctDamageModsDone(Unit* victim, SpellInfo const* spellProto, Da
     // Done total percent damage auras
     float DoneTotalMod = 1.0f;
 
+    // MoP Mastery: Mana Adept (Arcane Mage). Damage bonus scales linearly
+    // with current mana and reaches 2% per Mastery point at full mana.
+    if (Player* player = ToPlayer())
+    {
+        if (spellProto->SpellFamilyName == SPELLFAMILY_MAGE &&
+            Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::MAGE_ARCANE))
+        {
+            uint32 maxMana = player->GetMaxPower(POWER_MANA);
+            if (maxMana)
+            {
+                float manaFraction = float(player->GetPower(POWER_MANA)) / float(maxMana);
+                AddPct(DoneTotalMod, Acore::Mastery::GetMastery(player) * 2.0f * manaFraction);
+            }
+        }
+    }
+
     DoneTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, [spellProto, this, damagetype](AuraEffect const* aurEff)
     {
         // prevent apply mods from weapon specific case to non weapon specific spells (Example: thunder clap and two-handed weapon specialization)
@@ -9522,6 +9539,18 @@ float Unit::SpellPctHealingModsDone(Unit* victim, SpellInfo const* spellProto, D
         return 1.0f;
 
     float DoneTotalMod = 1.0f;
+
+    // MoP Mastery: Deep Healing (Restoration Shaman). All healing gains up to
+    // 3% per Mastery point, proportional to the target's missing health.
+    if (Player* player = ToPlayer())
+    {
+        if (spellProto->SpellFamilyName == SPELLFAMILY_SHAMAN &&
+            Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::SHAMAN_RESTORATION))
+        {
+            float missingHealthPct = 100.0f - victim->GetHealthPct();
+            AddPct(DoneTotalMod, Acore::Mastery::GetMastery(player) * 3.0f * missingHealthPct / 100.0f);
+        }
+    }
 
     // Healing done percent
     if (includeHealingDonePct)
