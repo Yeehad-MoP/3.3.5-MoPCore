@@ -1,0 +1,24 @@
+name: One-shot Icicles compile check
+
+on:
+  push:
+    branches: [ feature/mastery-core ]
+    paths: [ '.github/workflows/mastery-icicles-compile.yml' ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/mastery-core
+      - uses: ./.github/actions/linux-build
+        with:
+          CC: gcc
+          CXX: g++
+          modules: false
+          pch: false
+          maxerrors: 20
