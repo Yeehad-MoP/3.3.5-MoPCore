@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# One-shot patch script for Mana Adept and Deep Healing.
 path = Path('src/server/game/Entities/Unit/Unit.cpp')
 text = path.read_text()
 
