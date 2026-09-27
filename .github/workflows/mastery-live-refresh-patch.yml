@@ -1,0 +1,104 @@
+name: One-shot Mastery live refresh integration
+on:
+  push:
+    branches: [feature/mastery-core]
+    paths: ['.github/workflows/mastery-live-refresh-patch.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mastery branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/mastery-core
+          fetch-depth: 0
+      - name: Integrate live Mastery recalculation
+        shell: python
+        run: |
+          from pathlib import Path
+
+          # Player.h: cached server-only Mastery rating + apply/remove API.
+          p = Path('src/server/game/Entities/Player/Player.h')
+          s = p.read_text()
+          old = '''    void ApplyRatingMod(CombatRating cr, int32 value, bool apply);\n    void UpdateRating(CombatRating cr);\n    void UpdateAllRatings();\n'''
+          new = '''    void ApplyRatingMod(CombatRating cr, int32 value, bool apply);\n    void UpdateRating(CombatRating cr);\n    void UpdateAllRatings();\n    void ApplyMasteryRatingBonus(int32 amount, bool apply);\n    [[nodiscard]] int32 GetMasteryRatingValue() const { return m_masteryRating; }\n'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = '''    int32 m_baseRatingValue[MAX_COMBAT_RATING];\n    uint32 m_baseSpellPower;\n'''
+          new = '''    int32 m_baseRatingValue[MAX_COMBAT_RATING];\n    int32 m_masteryRating; // server-side only; never mapped to PLAYER_FIELD_COMBAT_RATING_1\n    uint32 m_baseSpellPower;\n'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          # Mastery.h: use cached rating and provide a single active-aura refresh helper.
+          p = Path('src/server/game/Entities/Player/Mastery.h')
+          s = p.read_text()
+          if '#include "SpellAuraEffects.h"' not in s:
+              s = s.replace('#include "Player.h"\n', '#include "Player.h"\n#include "SpellAuraEffects.h"\n', 1)
+          start = s.index('    inline int32 GetMasteryRating(Player const* player)')
+          end = s.index('\n    /**\n     * Converts raw Mastery Rating', start)
+          replacement = '''    inline int32 GetMasteryRating(Player const* player)\n    {\n        return player ? std::max<int32>(player->GetMasteryRatingValue(), 0) : 0;\n    }\n'''
+          s = s[:start] + replacement + s[end:]
+          marker = '''    inline bool HasMasterySpecialization(Player const* player, uint32 masterySpell)\n    {\n        return GetMasterySpecializationSpell(player) == masterySpell;\n    }\n'''
+          add = marker + '''\n    inline void RecalculateMasterySpecialization(Player* player)\n    {\n        if (!player)\n            return;\n\n        uint32 masterySpell = GetMasterySpecializationSpell(player);\n        if (!masterySpell)\n            return;\n\n        for (uint8 effectIndex = EFFECT_0; effectIndex < MAX_SPELL_EFFECTS; ++effectIndex)\n            if (AuraEffect* effect = player->GetAuraEffect(masterySpell, effectIndex))\n                effect->RecalculateAmount(player);\n    }\n'''
+          assert marker in s
+          s = s.replace(marker, add, 1)
+          p.write_text(s)
+
+          # Player.cpp: update cached rating through normal item stat apply/remove paths.
+          p = Path('src/server/game/Entities/Player/Player.cpp')
+          s = p.read_text()
+          if '#include "Mastery.h"' not in s:
+              s = s.replace('#include "Player.h"\n', '#include "Player.h"\n#include "Mastery.h"\n', 1)
+          old = '''    for (uint8 i = 0; i < MAX_COMBAT_RATING; i++)\n        m_baseRatingValue[i] = 0;\n\n    m_baseSpellPower = 0;\n'''
+          new = '''    for (uint8 i = 0; i < MAX_COMBAT_RATING; i++)\n        m_baseRatingValue[i] = 0;\n\n    m_masteryRating = 0;\n    m_baseSpellPower = 0;\n'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = '''            case ITEM_MOD_BLOCK_VALUE:\n                HandleBaseModFlatValue(SHIELD_BLOCK_VALUE, float(val), apply);\n                break;\n'''
+          new = '''            case ITEM_MOD_BLOCK_VALUE:\n                HandleBaseModFlatValue(SHIELD_BLOCK_VALUE, float(val), apply);\n                break;\n            case ITEM_MOD_MASTERY_RATING:\n                ApplyMasteryRatingBonus(int32(val), apply);\n                break;\n'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          insert_before = 'void Player::_ApplyWeaponDamage(uint8 slot, ItemTemplate const* proto, ScalingStatValuesEntry const* ssv, bool apply)\n'
+          method = '''void Player::ApplyMasteryRatingBonus(int32 amount, bool apply)\n{\n    m_masteryRating += apply ? amount : -amount;\n    if (m_masteryRating < 0)\n        m_masteryRating = 0;\n\n    Acore::Mastery::RecalculateMasterySpecialization(this);\n}\n\n'''
+          assert insert_before in s
+          s = s.replace(insert_before, method + insert_before, 1)
+          p.write_text(s)
+
+          # Aura 318 gets a real handler that refreshes specialization effects.
+          p = Path('src/server/game/Spells/Auras/SpellAuraEffects.h')
+          s = p.read_text()
+          marker = '''    void HandleNoImmediateEffect(AuraApplication const* /*aurApp*/, uint8 /*mode*/, bool /*apply*/) const\n    {\n        // aura type not have immediate effect at add/remove and handled by ID in other code place\n    }\n'''
+          add = marker + '''    void HandleAuraMastery(AuraApplication const* aurApp, uint8 mode, bool apply) const;\n'''
+          assert marker in s
+          s = s.replace(marker, add, 1)
+          p.write_text(s)
+
+          p = Path('src/server/game/Spells/Auras/SpellAuraEffects.cpp')
+          s = p.read_text()
+          old = '    &AuraEffect::HandleNoImmediateEffect,                         //318 SPELL_AURA_MASTERY evaluated on demand by Mastery helpers\n'
+          new = '    &AuraEffect::HandleAuraMastery,                              //318 SPELL_AURA_MASTERY refreshes active specialization Mastery effects\n'
+          assert old in s
+          s = s.replace(old, new, 1)
+          marker = 'int32 AuraEffect::CalculateAmount(Unit* caster)\n'
+          handler = '''void AuraEffect::HandleAuraMastery(AuraApplication const* aurApp, uint8 mode, bool /*apply*/) const\n{\n    if (!(mode & (AURA_EFFECT_HANDLE_REAL | AURA_EFFECT_HANDLE_CHANGE_AMOUNT_MASK | AURA_EFFECT_HANDLE_REAPPLY)))\n        return;\n\n    if (Player* player = aurApp && aurApp->GetTarget() ? aurApp->GetTarget()->ToPlayer() : nullptr)\n        Acore::Mastery::RecalculateMasterySpecialization(player);\n}\n\n'''
+          assert marker in s
+          s = s.replace(marker, handler + marker, 1)
+          p.write_text(s)
+
+          # Remove this one-shot workflow from the resulting commit.
+          Path('.github/workflows/mastery-live-refresh-patch.yml').unlink()
+      - name: Validate patch
+        run: |
+          git diff --check
+          grep -n "ITEM_MOD_MASTERY_RATING" src/server/game/Entities/Player/Player.cpp
+          grep -n "HandleAuraMastery" src/server/game/Spells/Auras/SpellAuraEffects.cpp src/server/game/Spells/Auras/SpellAuraEffects.h
+          grep -n "RecalculateMasterySpecialization" src/server/game/Entities/Player/Mastery.h
+      - name: Commit live Mastery refresh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Recalculate Mastery effects on rating and aura changes"
+          git push origin HEAD:feature/mastery-core
