@@ -1,0 +1,32 @@
+name: One-shot Mastery Unit scaling integration
+on:
+  push:
+    branches:
+      - feature/mastery-core
+    paths:
+      - tools/mastery_unit_scaling_patch.py
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/mastery-core
+          fetch-depth: 0
+      - name: Apply Mastery scaling patch
+        run: python tools/mastery_unit_scaling_patch.py
+      - name: Validate patch
+        run: |
+          git diff --check
+          grep -q 'MoP Mastery: Mana Adept' src/server/game/Entities/Unit/Unit.cpp
+          grep -q 'MoP Mastery: Deep Healing' src/server/game/Entities/Unit/Unit.cpp
+      - name: Commit and clean temporary patch files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm tools/mastery_unit_scaling_patch.py .github/workflows/mastery-unit-scaling-patch.yml
+          git add src/server/game/Entities/Unit/Unit.cpp
+          git commit -m 'Implement Mana Adept and Deep Healing Masteries'
+          git push origin feature/mastery-core
