@@ -1,0 +1,78 @@
+name: Full Mastery compile and runtime audit
+
+on:
+  push:
+    branches: [ feature/mastery-core ]
+    paths:
+      - 'tools/mastery_full_audit_fixes.py'
+      - '.github/workflows/mastery-full-audit.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  mastery-audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/mastery-core
+          fetch-depth: 0
+
+      - name: Apply full audit fixes
+        run: python tools/mastery_full_audit_fixes.py
+
+      - name: Validate audited source
+        run: |
+          git diff --check
+          grep -q 'SynchronizeMasterySpecialization' src/server/game/Entities/Player/Mastery.h
+          grep -q 'TALENT_TREE_WARRIOR_ARMS' src/server/game/Entities/Player/Mastery.h
+          grep -q 'ITEM_MOD_MASTERY_RATING' src/server/game/Entities/Player/PlayerStorage.cpp
+          grep -q '1.85f / 100.0f' src/server/scripts/Spells/spell_mastery.cpp
+          grep -q 'GetMastery(player) \* 3.00f' src/server/scripts/Spells/spell_mastery.cpp
+          grep -q 'GetMastery(player) \* 2.00f' src/server/scripts/Spells/spell_mastery.cpp
+          grep -q 'GetMastery(player) \* 1.875f' src/server/scripts/Spells/spell_mastery.cpp
+          grep -q 'CastCustomSpell(player, SPELL_MASTERY_BLOOD_SHIELD' src/server/scripts/Spells/spell_mastery.cpp
+          grep -q 'trigger->Id == SPELL_MASTERY_OPPORTUNITY_STRIKE' src/server/scripts/Spells/spell_mastery.cpp
+          grep -q 'remainingTicks' src/server/scripts/Spells/spell_mastery.cpp
+          grep -q 'isHunterPet = HasAura(8875)' src/server/game/Entities/Unit/Unit.cpp
+          grep -q 'CREATURE_TYPE_DEMON' src/server/game/Entities/Unit/Unit.cpp
+          grep -q "102792, 'spell_mastery_harmony_trigger'" data/sql/updates/db_world/2026_09_27_00.sql
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libboost-all-dev libssl-dev \
+            libmysqlclient-dev libreadline-dev zlib1g-dev libbz2-dev libncurses-dev
+
+      - name: Configure no-PCH audit build
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSCRIPTS=static \
+            -DMODULES=static \
+            -DTOOLS_BUILD=none \
+            -DUSE_SCRIPTPCH=OFF \
+            -DUSE_COREPCH=OFF \
+            -DNOPCH=true \
+            -DWITH_WARNINGS=ON
+
+      - name: Compile worldserver
+        run: cmake --build build --target worldserver -j2
+
+      - name: Commit audited fixes and clean temporary runners
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm -f tools/mastery_full_audit_fixes.py .github/workflows/mastery-full-audit.yml
+          if [ -f tools/mastery_runtime_audit_fixes.py ]; then git rm -f tools/mastery_runtime_audit_fixes.py; fi
+          if [ -f .github/workflows/mastery-runtime-audit-fixes.yml ]; then git rm -f .github/workflows/mastery-runtime-audit-fixes.yml; fi
+          if [ -f .github/workflows/mastery-icicles-compile.yml ]; then git rm -f .github/workflows/mastery-icicles-compile.yml; fi
+          git add src/server/game/Entities/Player/Mastery.h \
+                  src/server/game/Entities/Player/Player.cpp \
+                  src/server/game/Entities/Player/PlayerStorage.cpp \
+                  src/server/game/Entities/Unit/Unit.cpp \
+                  src/server/scripts/Spells/spell_mastery.cpp \
+                  data/sql/updates/db_world/2026_09_27_00.sql
+          git commit -m 'Complete Mastery compile and runtime audit'
+          git push origin feature/mastery-core
