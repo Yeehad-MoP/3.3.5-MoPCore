@@ -1,0 +1,34 @@
+name: One-shot pet and Warlock Mastery integration
+on:
+  push:
+    branches:
+      - feature/mastery-core
+    paths:
+      - tools/mastery_pet_warlock_patch.py
+      - .github/workflows/mastery-pet-warlock-patch.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/mastery-core
+          fetch-depth: 0
+      - name: Apply pet and Warlock Mastery patch
+        run: python tools/mastery_pet_warlock_patch.py
+      - name: Validate patch
+        run: |
+          git diff --check
+          grep -q 'MoP pet/caster Masteries' src/server/game/Entities/Unit/Unit.cpp
+          grep -q 'Mastery: Emberstorm - Ember Tap' src/server/game/Entities/Unit/Unit.cpp
+          grep -q 'HUNTER_BEAST_MASTERY' src/server/game/Entities/Unit/Unit.cpp
+      - name: Commit and clean temporary files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm tools/mastery_pet_warlock_patch.py .github/workflows/mastery-pet-warlock-patch.yml
+          git add src/server/game/Entities/Unit/Unit.cpp
+          git commit -m 'Implement pet and Warlock Mastery scaling'
+          git push origin feature/mastery-core
