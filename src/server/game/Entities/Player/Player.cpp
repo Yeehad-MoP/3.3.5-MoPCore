@@ -3955,6 +3955,7 @@ bool Player::resetTalents(bool noResetCost)
         m_resetTalentsTime = GameTime::GetGameTime().count();
     }
 
+    Acore::Mastery::SyncMasterySpecialization(this);
     return true;
 }
 
@@ -14411,6 +14412,7 @@ void Player::LearnTalent(uint32 talentId, uint32 talentRank, bool command /*= fa
     }
 
     sScriptMgr->OnPlayerLearnTalents(this, talentId, talentRank, spellId);
+    Acore::Mastery::SyncMasterySpecialization(this);
 }
 
 void Player::LearnPetTalent(ObjectGuid petGuid, uint32 talentId, uint32 talentRank)
@@ -15706,6 +15708,7 @@ void Player::ActivateSpec(uint8 spec)
         aurEff->HandleShapeshiftBoosts(this, true);
     }
 
+    Acore::Mastery::SyncMasterySpecialization(this);
     sScriptMgr->OnPlayerAfterSpecSlotChanged(this, GetActiveSpec());
 }
 

@@ -186,6 +186,82 @@ namespace Acore::Mastery
         return GetMasterySpecializationSpell(player) == masterySpell;
     }
 
+    inline uint32 GetExpectedMasterySpecializationSpell(Player* player)
+    {
+        if (!IsMasteryAvailable(player))
+            return 0;
+
+        switch (player->GetSpec())
+        {
+            case TALENT_TREE_WARRIOR_ARMS: return WARRIOR_ARMS;
+            case TALENT_TREE_WARRIOR_FURY: return WARRIOR_FURY;
+            case TALENT_TREE_WARRIOR_PROTECTION: return WARRIOR_PROTECTION;
+            case TALENT_TREE_PALADIN_HOLY: return PALADIN_HOLY;
+            case TALENT_TREE_PALADIN_PROTECTION: return PALADIN_PROTECTION;
+            case TALENT_TREE_PALADIN_RETRIBUTION: return PALADIN_RETRIBUTION;
+            case TALENT_TREE_HUNTER_BEAST_MASTERY: return HUNTER_BEAST_MASTERY;
+            case TALENT_TREE_HUNTER_MARKSMANSHIP: return HUNTER_MARKSMANSHIP;
+            case TALENT_TREE_HUNTER_SURVIVAL: return HUNTER_SURVIVAL;
+            case TALENT_TREE_ROGUE_ASSASSINATION: return ROGUE_ASSASSINATION;
+            case TALENT_TREE_ROGUE_COMBAT: return ROGUE_COMBAT;
+            case TALENT_TREE_ROGUE_SUBTLETY: return ROGUE_SUBTLETY;
+            case TALENT_TREE_PRIEST_DISCIPLINE: return PRIEST_DISCIPLINE;
+            case TALENT_TREE_PRIEST_HOLY: return PRIEST_HOLY;
+            case TALENT_TREE_PRIEST_SHADOW: return PRIEST_SHADOW;
+            case TALENT_TREE_DEATH_KNIGHT_BLOOD: return DEATH_KNIGHT_BLOOD;
+            case TALENT_TREE_DEATH_KNIGHT_FROST: return DEATH_KNIGHT_FROST;
+            case TALENT_TREE_DEATH_KNIGHT_UNHOLY: return DEATH_KNIGHT_UNHOLY;
+            case TALENT_TREE_SHAMAN_ELEMENTAL: return SHAMAN_ELEMENTAL;
+            case TALENT_TREE_SHAMAN_ENHANCEMENT: return SHAMAN_ENHANCEMENT;
+            case TALENT_TREE_SHAMAN_RESTORATION: return SHAMAN_RESTORATION;
+            case TALENT_TREE_MAGE_ARCANE: return MAGE_ARCANE;
+            case TALENT_TREE_MAGE_FIRE: return MAGE_FIRE;
+            case TALENT_TREE_MAGE_FROST: return MAGE_FROST;
+            case TALENT_TREE_WARLOCK_AFFLICTION: return WARLOCK_AFFLICTION;
+            case TALENT_TREE_WARLOCK_DEMONOLOGY: return WARLOCK_DEMONOLOGY;
+            case TALENT_TREE_WARLOCK_DESTRUCTION: return WARLOCK_DESTRUCTION;
+            case TALENT_TREE_DRUID_BALANCE: return DRUID_BALANCE;
+            case TALENT_TREE_DRUID_RESTORATION: return DRUID_RESTORATION;
+            case TALENT_TREE_DRUID_FERAL_COMBAT:
+                // WotLK has one Feral Combat tree, while MoP splits Feral and
+                // Guardian. Preserve an explicitly learned/cast Guardian
+                // passive as the stable selector; otherwise default to Feral.
+                if (player->HasSpell(DRUID_GUARDIAN) || player->HasAura(DRUID_GUARDIAN))
+                    return DRUID_GUARDIAN;
+                return DRUID_FERAL;
+            default:
+                return 0;
+        }
+    }
+
+    inline void SyncMasterySpecialization(Player* player)
+    {
+        if (!player)
+            return;
+
+        uint32 expected = GetExpectedMasterySpecializationSpell(player);
+        static constexpr uint32 masterySpells[] =
+        {
+            WARRIOR_ARMS, WARRIOR_FURY, WARRIOR_PROTECTION,
+            PALADIN_HOLY, PALADIN_PROTECTION, PALADIN_RETRIBUTION,
+            HUNTER_BEAST_MASTERY, HUNTER_MARKSMANSHIP, HUNTER_SURVIVAL,
+            ROGUE_ASSASSINATION, ROGUE_COMBAT, ROGUE_SUBTLETY,
+            PRIEST_DISCIPLINE, PRIEST_HOLY, PRIEST_SHADOW,
+            DEATH_KNIGHT_BLOOD, DEATH_KNIGHT_FROST, DEATH_KNIGHT_UNHOLY,
+            SHAMAN_ELEMENTAL, SHAMAN_ENHANCEMENT, SHAMAN_RESTORATION,
+            MAGE_ARCANE, MAGE_FIRE, MAGE_FROST,
+            WARLOCK_AFFLICTION, WARLOCK_DEMONOLOGY, WARLOCK_DESTRUCTION,
+            DRUID_BALANCE, DRUID_FERAL, DRUID_GUARDIAN, DRUID_RESTORATION
+        };
+
+        for (uint32 spellId : masterySpells)
+            if (spellId != expected && player->HasAura(spellId))
+                player->RemoveAurasDueToSpell(spellId);
+
+        if (expected && !player->HasAura(expected))
+            player->CastSpell(player, expected, true);
+    }
+
     inline void RecalculateMasterySpecialization(Player* player)
     {
         if (!player)

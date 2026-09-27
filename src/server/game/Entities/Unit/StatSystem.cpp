@@ -17,6 +17,7 @@
 
 #include "Config.h"
 #include "Creature.h"
+#include "Mastery.h"
 #include "Pet.h"
 #include "Player.h"
 #include "ScriptMgr.h"
@@ -230,6 +231,7 @@ bool Player::UpdateAllStats()
     RecalculateRating(CR_ARMOR_PENETRATION);
     UpdateAllResistances();
 
+    Acore::Mastery::SyncMasterySpecialization(this);
     return true;
 }
 
