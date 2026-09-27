@@ -30,14 +30,15 @@ DELETE FROM `spell_script_names` WHERE `ScriptName` IN (
     'spell_mastery_shadowy_recall',
     'spell_mastery_harmony_passive',
     'spell_mastery_harmony_periodic_bonus',
-    'spell_mastery_harmony_trigger'
+    'spell_mastery_harmony_trigger',
+    'spell_mastery_icicles_store',
+    'spell_mastery_icicles_launch'
 );
 
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 -- Warrior mastery passives
 (76838, 'spell_mastery_strikes_of_opportunity'),
 (76857, 'spell_mastery_critical_block'),
--- Fury mastery modifies the Enrage aura itself
 (12880, 'spell_mastery_unshackled_fury'),
 
 -- Paladin mastery passives / triggers
@@ -80,12 +81,15 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (51505,  'spell_mastery_elemental_overload'),
 (117014, 'spell_mastery_elemental_overload'),
 
--- Mage Ignite triggers
+-- Mage mastery triggers
 (133,    'spell_mastery_ignite'),
 (44614,  'spell_mastery_ignite'),
 (108853, 'spell_mastery_ignite'),
 (2948,   'spell_mastery_ignite'),
 (11366,  'spell_mastery_ignite'),
+(-116,   'spell_mastery_icicles_store'),
+(44614,  'spell_mastery_icicles_store'),
+(30455,  'spell_mastery_icicles_launch'),
 
 -- Warlock mastery passive
 (77215, 'spell_mastery_potent_afflictions'),
