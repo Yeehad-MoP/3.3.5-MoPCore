@@ -1985,6 +1985,8 @@ public:
     void ApplyRatingMod(CombatRating cr, int32 value, bool apply);
     void UpdateRating(CombatRating cr);
     void UpdateAllRatings();
+    void ApplyMasteryRatingBonus(int32 amount, bool apply);
+    [[nodiscard]] int32 GetMasteryRatingValue() const { return m_masteryRating; }
 
     void CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, bool addTotalPct, float& minDamage, float& maxDamage, uint8 damageIndex) override;
 
@@ -2889,6 +2891,7 @@ protected:
     float m_auraBaseFlatMod[BASEMOD_END];
     float m_auraBasePctMod[BASEMOD_END];
     int32 m_baseRatingValue[MAX_COMBAT_RATING];
+    int32 m_masteryRating; // server-side only; never mapped to PLAYER_FIELD_COMBAT_RATING_1
     uint32 m_baseSpellPower;
     uint32 m_baseSpellDamage;
     uint32 m_baseSpellHealing;

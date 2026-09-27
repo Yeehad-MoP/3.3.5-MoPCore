@@ -43,6 +43,7 @@
 #include "Group.h"
 #include "Log.h"
 #include "MapMgr.h"
+#include "Mastery.h"
 #include "MoveSpline.h"
 #include "MoveSplineInit.h"
 #include "MovementGenerator.h"
@@ -8470,6 +8471,22 @@ float Unit::SpellPctDamageModsDone(Unit* victim, SpellInfo const* spellProto, Da
     // Done total percent damage auras
     float DoneTotalMod = 1.0f;
 
+    // MoP Mastery: Mana Adept (Arcane Mage). Damage bonus scales linearly
+    // with current mana and reaches 2% per Mastery point at full mana.
+    if (Player* player = ToPlayer())
+    {
+        if (spellProto->SpellFamilyName == SPELLFAMILY_MAGE &&
+            Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::MAGE_ARCANE))
+        {
+            uint32 maxMana = player->GetMaxPower(POWER_MANA);
+            if (maxMana)
+            {
+                float manaFraction = float(player->GetPower(POWER_MANA)) / float(maxMana);
+                AddPct(DoneTotalMod, Acore::Mastery::GetMastery(player) * 2.0f * manaFraction);
+            }
+        }
+    }
+
     DoneTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE, [spellProto, this, damagetype](AuraEffect const* aurEff)
     {
         // prevent apply mods from weapon specific case to non weapon specific spells (Example: thunder clap and two-handed weapon specialization)
@@ -8505,6 +8522,77 @@ float Unit::SpellPctDamageModsDone(Unit* victim, SpellInfo const* spellProto, Da
     {
         return victim->HasAuraState(AuraStateType(aurEff->GetMiscValue())) && spellProto->ValidateAttribute6SpellDamageMods(this, aurEff, damagetype == DOT);
     });
+
+    // MoP pet/caster Masteries that cannot be represented by the converted
+    // Spell.dbc's zeroed EffectBonusMultiplier fields.
+    if (Player* player = ToPlayer())
+    {
+        if (spellProto->SpellFamilyName == SPELLFAMILY_WARLOCK)
+        {
+            if (Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::WARLOCK_DEMONOLOGY))
+            {
+                // Master Demonologist: 1% per Mastery in caster form, 3% in
+                // Metamorphosis (103958).
+                float coefficient = player->HasAura(103958) ? 3.0f : 1.0f;
+                AddPct(DoneTotalMod, Acore::Mastery::GetMastery(player) * coefficient);
+            }
+            else if (Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::WARLOCK_DESTRUCTION))
+            {
+                switch (spellProto->Id)
+                {
+                    // Immolate, Incinerate, Fel Flame, Conflagrate and their
+                    // Fire-and-Brimstone variants: 1% per Mastery point.
+                    case 348:
+                    case 29722:
+                    case 77799:
+                    case 17962:
+                    case 108685:
+                    case 108686:
+                    case 114654:
+                        AddPct(DoneTotalMod, Acore::Mastery::GetMastery(player));
+                        break;
+                    // Burning Ember consumers: 3% per Mastery point.
+                    case 116858: // Chaos Bolt
+                    case 17877:  // Shadowburn
+                    case 125882: // MoP Shadowburn alias
+                        AddPct(DoneTotalMod, Acore::Mastery::GetMastery(player) * 3.0f);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        else if (spellProto->SpellFamilyName == SPELLFAMILY_HUNTER &&
+                 Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::HUNTER_BEAST_MASTERY))
+        {
+            // A Murder of Crows is explicitly modified by Master of Beasts.
+            if (spellProto->Id == 131900)
+                AddPct(DoneTotalMod, Acore::Mastery::GetMastery(player) * 2.0f);
+        }
+    }
+    else if (Unit* ownerUnit = GetOwner())
+    {
+        if (Player* ownerPlayer = ownerUnit->ToPlayer())
+        {
+            // Master of Beasts modifies the hunter's real tamed pet, represented
+            // by Tamed Pet Passive 01 (DND), not every temporary owned summon.
+            bool const isHunterPet = HasAura(8875);
+
+            // Master Demonologist's servant bonus belongs to demon creatures,
+            // not arbitrary guardians or temporary objects owned by the Warlock.
+            Creature* creature = ToCreature();
+            bool const isWarlockDemon = creature && creature->GetCreatureTemplate() &&
+                creature->GetCreatureTemplate()->type == CREATURE_TYPE_DEMON;
+
+            if (isHunterPet && Acore::Mastery::HasMasterySpecialization(ownerPlayer, Acore::Mastery::HUNTER_BEAST_MASTERY))
+                AddPct(DoneTotalMod, Acore::Mastery::GetMastery(ownerPlayer) * 2.0f);
+            else if (isWarlockDemon && Acore::Mastery::HasMasterySpecialization(ownerPlayer, Acore::Mastery::WARLOCK_DEMONOLOGY))
+                AddPct(DoneTotalMod, Acore::Mastery::GetMastery(ownerPlayer));
+            else if (Acore::Mastery::HasMasterySpecialization(ownerPlayer, Acore::Mastery::MAGE_FROST) &&
+                     (spellProto->Id == 31707 || spellProto->Id == 131581))
+                AddPct(DoneTotalMod, Acore::Mastery::GetMastery(ownerPlayer) * 2.0f);
+        }
+    }
 
     // done scripted mod (take it from owner)
     Unit* owner = GetOwner() ? GetOwner() : this;
@@ -9523,6 +9611,24 @@ float Unit::SpellPctHealingModsDone(Unit* victim, SpellInfo const* spellProto, D
 
     float DoneTotalMod = 1.0f;
 
+    // MoP Mastery: Deep Healing (Restoration Shaman). All healing gains up to
+    // 3% per Mastery point, proportional to the target's missing health.
+    if (Player* player = ToPlayer())
+    {
+        if (spellProto->SpellFamilyName == SPELLFAMILY_SHAMAN &&
+            Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::SHAMAN_RESTORATION))
+        {
+            float missingHealthPct = 100.0f - victim->GetHealthPct();
+            AddPct(DoneTotalMod, Acore::Mastery::GetMastery(player) * 3.0f * missingHealthPct / 100.0f);
+        }
+    }
+
+    // Mastery: Emberstorm - Ember Tap consumes Burning Embers and its healing
+    // effectiveness scales by 3% per Mastery point.
+    if (Player* player = ToPlayer())
+        if (Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::WARLOCK_DESTRUCTION) && spellProto->Id == 114635)
+            AddPct(DoneTotalMod, Acore::Mastery::GetMastery(player) * 3.0f);
+
     // Healing done percent
     if (includeHealingDonePct)
         DoneTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_HEALING_DONE_PERCENT);
@@ -10184,6 +10290,22 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
 {
     if (!victim || pdamage == 0)
         return 0;
+
+    if (Unit* ownerUnit = GetOwner())
+    {
+        if (Player* owner = ownerUnit->ToPlayer())
+        {
+            bool const isHunterPet = HasAura(8875);
+            Creature* creature = ToCreature();
+            bool const isWarlockDemon = creature && creature->GetCreatureTemplate() &&
+                creature->GetCreatureTemplate()->type == CREATURE_TYPE_DEMON;
+
+            if (isHunterPet && Acore::Mastery::HasMasterySpecialization(owner, Acore::Mastery::HUNTER_BEAST_MASTERY))
+                AddPct(pdamage, Acore::Mastery::GetMastery(owner) * 2.0f);
+            else if (isWarlockDemon && Acore::Mastery::HasMasterySpecialization(owner, Acore::Mastery::WARLOCK_DEMONOLOGY))
+                AddPct(pdamage, Acore::Mastery::GetMastery(owner));
+        }
+    }
 
     if (IsCreature())
     {

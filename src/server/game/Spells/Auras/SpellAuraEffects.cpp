@@ -25,6 +25,7 @@
 #include "GameTime.h"
 #include "GridNotifiers.h"
 #include "Log.h"
+#include "Mastery.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Opcodes.h"
@@ -379,6 +380,8 @@ pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS] =
     &AuraEffect::HandlePreventResurrection,                       //314 SPELL_AURA_PREVENT_RESURRECTION todo
     &AuraEffect::HandleNoImmediateEffect,                         //315 SPELL_AURA_UNDERWATER_WALKING todo
     &AuraEffect::HandleNoImmediateEffect,                         //316 SPELL_AURA_PERIODIC_HASTE implemented in AuraEffect::CalculatePeriodic
+    &AuraEffect::HandleNoImmediateEffect,                         //317 SPELL_AURA_317 (MoP: SPELL_AURA_MOD_SPELL_POWER_PCT) not implemented yet
+    &AuraEffect::HandleAuraMastery,                              //318 SPELL_AURA_MASTERY refreshes active specialization Mastery effects
 };
 
 AuraEffect::AuraEffect(Aura* base, uint8 effIndex, int32* baseAmount, Unit* caster):
@@ -449,11 +452,28 @@ AuraType AuraEffect::GetAuraType() const
     return (AuraType)m_spellInfo->Effects[m_effIndex].ApplyAuraName;
 }
 
+void AuraEffect::HandleAuraMastery(AuraApplication const* aurApp, uint8 mode, bool /*apply*/) const
+{
+    if (!(mode & (AURA_EFFECT_HANDLE_REAL | AURA_EFFECT_HANDLE_CHANGE_AMOUNT_MASK | AURA_EFFECT_HANDLE_REAPPLY)))
+        return;
+
+    if (Player* player = aurApp && aurApp->GetTarget() ? aurApp->GetTarget()->ToPlayer() : nullptr)
+        Acore::Mastery::RecalculateMasterySpecialization(player);
+}
+
 int32 AuraEffect::CalculateAmount(Unit* caster)
 {
     int32 amount;
-    // default amount calculation
-    amount = m_spellInfo->Effects[m_effIndex].CalcValue(caster, &m_baseAmount, nullptr);
+    SpellEffectInfo const& effect = m_spellInfo->Effects[m_effIndex];
+
+    // MoP specialization Masteries store their per-Mastery-point scaling in
+    // EffectBonusMultiplier. Keep the 3.3.5 client update-field layout intact
+    // and calculate the aura amount from the server-side Mastery value instead.
+    if (Player* player = caster ? caster->ToPlayer() : nullptr;
+        player && Acore::Mastery::IsMasterySpecializationSpell(m_spellInfo->Id) && effect.BonusMultiplier != 0.0f)
+        amount = int32(Acore::Mastery::GetMastery(player) * effect.BonusMultiplier);
+    else
+        amount = effect.CalcValue(caster, &m_baseAmount, nullptr);
 
     // check item enchant aura cast
     if (!amount && caster)

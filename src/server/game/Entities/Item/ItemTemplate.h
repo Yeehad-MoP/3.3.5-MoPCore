@@ -67,10 +67,11 @@ enum ItemModType
     ITEM_MOD_SPELL_POWER              = 45,
     ITEM_MOD_HEALTH_REGEN             = 46,
     ITEM_MOD_SPELL_PENETRATION        = 47,
-    ITEM_MOD_BLOCK_VALUE              = 48
+    ITEM_MOD_BLOCK_VALUE              = 48,
+    ITEM_MOD_MASTERY_RATING           = 49
 };
 
-#define MAX_ITEM_MOD                    49
+#define MAX_ITEM_MOD                    50
 
 enum ItemSpelltriggerType
 {
@@ -197,8 +198,8 @@ enum ItemFlags2 : uint32
     ITEM_FLAG2_OVERRIDE_GOLD_COST                       = 0x00004000, // NYI - unused
     ITEM_FLAG2_IGNORE_DEFAULT_RATED_BG_RESTRICTIONS     = 0x00008000, // NYI
     ITEM_FLAG2_NOT_USABLE_IN_RATED_BG                   = 0x00010000, // NYI
-    ITEM_FLAG2_BNET_ACCOUNT_TRADE_OK                    = 0x00020000, // NYI
-    ITEM_FLAG2_CONFIRM_BEFORE_USE                       = 0x00040000, // NYI - unused
+    ITEM_FLAG2_BNET_ACCOUNT_TRADE_OK                    = 0x00020000, // NYI - unused
+    ITEM_FLAG2_CONFIRM_BEFORE_USE                       = 0x00040000, // NYI
     ITEM_FLAG2_REEVALUATE_BONDING_ON_TRANSFORM          = 0x00080000, // NYI - unused
     ITEM_FLAG2_NO_TRANSFORM_ON_CHARGE_DEPLETION         = 0x00100000, // NYI - unused
     ITEM_FLAG2_NO_ALTER_ITEM_VISUAL                     = 0x00200000, // NYI
