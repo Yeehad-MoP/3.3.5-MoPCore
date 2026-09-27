@@ -201,12 +201,10 @@ namespace Acore::Mastery
     }
 
     /**
-     * Returns raw Mastery Rating supplied by currently equipped item_template
-     * stats (ITEM_MOD_MASTERY_RATING / stat type 49).
-     *
-     * This intentionally reads the equipped items on demand instead of using
-     * PLAYER_FIELD_COMBAT_RATING_1. It therefore stays synchronized across
-     * equip/unequip operations without adding a client update field.
+     * Returns the raw server-side Mastery Rating accumulated through the normal
+     * item stat apply/remove path (ITEM_MOD_MASTERY_RATING / stat type 49).
+     * It is intentionally stored outside PLAYER_FIELD_COMBAT_RATING_1 so it can
+     * be updated live without changing the 3.3.5 client object-field layout.
      */
     inline int32 GetMasteryRating(Player const* player)
     {
