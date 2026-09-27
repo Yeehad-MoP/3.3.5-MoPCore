@@ -14,13 +14,14 @@ jobs:
           ref: feature/mastery-core
           fetch-depth: 0
       - name: Integrate converted-DBC Mastery coefficients
-        shell: python
+        shell: bash
         run: |
+          python - <<'PY'
           from pathlib import Path
 
           mastery = Path('src/server/game/Entities/Player/Mastery.h')
           text = mastery.read_text()
-          anchor = '''    inline bool HasMasterySpecialization(Player const* player, uint32 masterySpell)\n    {\n        return GetMasterySpecializationSpell(player) == masterySpell;\n    }\n'''
+          anchor = """    inline bool HasMasterySpecialization(Player const* player, uint32 masterySpell)\n    {\n        return GetMasterySpecializationSpell(player) == masterySpell;\n    }\n"""
           insert = anchor + r'''
 
     /**
@@ -40,33 +41,24 @@ jobs:
                 return effectIndex == EFFECT_1 ? 1.40f : 0.0f;
             case WARRIOR_PROTECTION:
                 return (effectIndex == EFFECT_1 || effectIndex == EFFECT_2) ? 1.50f : 0.0f;
-
             case PALADIN_PROTECTION:
                 return (effectIndex == EFFECT_0 || effectIndex == EFFECT_1) ? 1.00f : 0.0f;
-
             case HUNTER_SURVIVAL:
                 return (effectIndex == EFFECT_0 || effectIndex == EFFECT_1) ? 1.00f : 0.0f;
-
             case ROGUE_ASSASSINATION:
                 return (effectIndex == EFFECT_1 || effectIndex == EFFECT_2) ? 3.50f : 0.0f;
             case ROGUE_SUBTLETY:
                 return effectIndex < MAX_SPELL_EFFECTS ? 2.50f : 0.0f;
-
             case PRIEST_DISCIPLINE:
-                // MoP Shield Discipline: healing scales at half the absorb rate.
                 return effectIndex == EFFECT_0 ? 0.80f : 0.0f;
-
             case DEATH_KNIGHT_FROST:
                 return effectIndex == EFFECT_1 ? 2.00f : 0.0f;
             case DEATH_KNIGHT_UNHOLY:
                 return effectIndex == EFFECT_1 ? 2.50f : 0.0f;
-
             case SHAMAN_ENHANCEMENT:
                 return effectIndex == EFFECT_1 ? 2.50f : 0.0f;
-
             case WARLOCK_AFFLICTION:
                 return (effectIndex == EFFECT_0 || effectIndex == EFFECT_1) ? 3.10f : 0.0f;
-
             case DRUID_BALANCE:
                 return effectIndex == EFFECT_1 ? 1.87f : 0.0f;
             case DRUID_FERAL:
@@ -80,17 +72,16 @@ jobs:
 '''
           if anchor not in text:
               raise SystemExit('Mastery.h anchor not found')
-          text = text.replace(anchor, insert, 1)
-          mastery.write_text(text)
+          mastery.write_text(text.replace(anchor, insert, 1))
 
           aura = Path('src/server/game/Spells/Auras/SpellAuraEffects.cpp')
           text = aura.read_text()
-          old = '''    if (Player* player = caster ? caster->ToPlayer() : nullptr;\n        player && Acore::Mastery::IsMasterySpecializationSpell(m_spellInfo->Id) && effect.BonusMultiplier != 0.0f)\n        amount = int32(Acore::Mastery::GetMastery(player) * effect.BonusMultiplier);\n    else\n        amount = effect.CalcValue(caster, &m_baseAmount, nullptr);\n'''
-          new = '''    if (Player* player = caster ? caster->ToPlayer() : nullptr; player && Acore::Mastery::IsMasterySpecializationSpell(m_spellInfo->Id))\n    {\n        float convertedDBCAmount = Acore::Mastery::GetConvertedDBCAmountPerMastery(m_spellInfo->Id, m_effIndex);\n        if (convertedDBCAmount != 0.0f)\n            amount = int32(Acore::Mastery::GetMastery(player) * convertedDBCAmount);\n        else if (effect.BonusMultiplier != 0.0f)\n            amount = int32(Acore::Mastery::GetMastery(player) * effect.BonusMultiplier);\n        else\n            amount = effect.CalcValue(caster, &m_baseAmount, nullptr);\n    }\n    else\n        amount = effect.CalcValue(caster, &m_baseAmount, nullptr);\n'''
+          old = """    if (Player* player = caster ? caster->ToPlayer() : nullptr;\n        player && Acore::Mastery::IsMasterySpecializationSpell(m_spellInfo->Id) && effect.BonusMultiplier != 0.0f)\n        amount = int32(Acore::Mastery::GetMastery(player) * effect.BonusMultiplier);\n    else\n        amount = effect.CalcValue(caster, &m_baseAmount, nullptr);\n"""
+          new = """    if (Player* player = caster ? caster->ToPlayer() : nullptr; player && Acore::Mastery::IsMasterySpecializationSpell(m_spellInfo->Id))\n    {\n        float convertedDBCAmount = Acore::Mastery::GetConvertedDBCAmountPerMastery(m_spellInfo->Id, m_effIndex);\n        if (convertedDBCAmount != 0.0f)\n            amount = int32(Acore::Mastery::GetMastery(player) * convertedDBCAmount);\n        else if (effect.BonusMultiplier != 0.0f)\n            amount = int32(Acore::Mastery::GetMastery(player) * effect.BonusMultiplier);\n        else\n            amount = effect.CalcValue(caster, &m_baseAmount, nullptr);\n    }\n    else\n        amount = effect.CalcValue(caster, &m_baseAmount, nullptr);\n"""
           if old not in text:
               raise SystemExit('SpellAuraEffects.cpp Mastery calculation anchor not found')
-          text = text.replace(old, new, 1)
-          aura.write_text(text)
+          aura.write_text(text.replace(old, new, 1))
+          PY
       - name: Validate patch
         run: |
           git diff --check
