@@ -113,17 +113,24 @@ namespace
     {
         PrepareAuraScript(spell_mastery_critical_block);
 
-        void CalculateAmount(AuraEffect const*, int32& amount, bool&)
+        void CalculateCriticalBlock(AuraEffect const*, int32& amount, bool&)
         {
             if (Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr)
                 if (Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::WARRIOR_PROTECTION))
-                    amount = int32(Acore::Mastery::GetMastery(player) * 1.50f);
+                    amount = int32(Acore::Mastery::GetMastery(player) * 2.20f);
+        }
+
+        void CalculateBlock(AuraEffect const*, int32& amount, bool&)
+        {
+            if (Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr)
+                if (Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::WARRIOR_PROTECTION))
+                    amount = int32(Acore::Mastery::GetMastery(player) * 0.50f);
         }
 
         void Register() override
         {
-            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_critical_block::CalculateAmount, EFFECT_1, SPELL_AURA_MOD_BLOCK_CRIT_CHANCE);
-            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_critical_block::CalculateAmount, EFFECT_2, SPELL_AURA_MOD_BLOCK_PERCENT);
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_critical_block::CalculateCriticalBlock, EFFECT_1, SPELL_AURA_MOD_BLOCK_CRIT_CHANCE);
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_critical_block::CalculateBlock, EFFECT_2, SPELL_AURA_MOD_BLOCK_PERCENT);
         }
     };
 
@@ -131,7 +138,7 @@ namespace
     {
         PrepareAuraScript(spell_mastery_divine_bulwark);
 
-        void CalculateAmount(AuraEffect const*, int32& amount, bool&)
+        void CalculateBlock(AuraEffect const*, int32& amount, bool&)
         {
             if (Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr)
                 if (Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::PALADIN_PROTECTION))
@@ -140,8 +147,10 @@ namespace
 
         void Register() override
         {
-            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_divine_bulwark::CalculateAmount, EFFECT_0, SPELL_AURA_ADD_FLAT_MODIFIER);
-            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_divine_bulwark::CalculateAmount, EFFECT_1, SPELL_AURA_MOD_BLOCK_PERCENT);
+            // The converted effect 0 lost its original fourth-effect target and
+            // is intentionally not used. Shield of the Righteous and Bastion of
+            // Glory are handled on their own auras in spell_mastery_tank.cpp.
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_divine_bulwark::CalculateBlock, EFFECT_1, SPELL_AURA_MOD_BLOCK_PERCENT);
         }
     };
 
