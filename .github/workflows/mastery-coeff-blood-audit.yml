@@ -1,0 +1,72 @@
+name: Final Mastery coefficient and Blood audit
+
+on:
+  push:
+    branches: [ feature/mastery-core ]
+    paths:
+      - 'tools/mastery_coeff_blood_audit.py'
+      - '.github/workflows/mastery-coeff-blood-audit.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/mastery-core
+          fetch-depth: 0
+
+      - name: Apply final corrections
+        run: python tools/mastery_coeff_blood_audit.py
+
+      - name: Validate corrections
+        run: |
+          git diff --check
+          grep -q '1.85f / 100.0f' src/server/scripts/Spells/spell_mastery.cpp
+          grep -q 'GetMastery(player) \* 3.00f' src/server/scripts/Spells/spell_mastery.cpp
+          grep -q 'GetMastery(player) \* 2.00f' src/server/scripts/Spells/spell_mastery.cpp
+          grep -q 'GetMastery(player) \* 1.875f' src/server/scripts/Spells/spell_mastery.cpp
+          grep -q 'CastCustomSpell(player, SPELL_MASTERY_BLOOD_SHIELD' src/server/scripts/Spells/spell_mastery.cpp
+          ! grep -A35 'class spell_mastery_blood_shield' src/server/scripts/Spells/spell_mastery.cpp | grep -q 'GetHitDamage()'
+          grep -q 'SyncMasterySpecialization' src/server/game/Entities/Player/Mastery.h
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libboost-all-dev libssl-dev \
+            libmysqlclient-dev libreadline-dev zlib1g-dev libbz2-dev libncurses-dev
+
+      - name: Configure no-PCH audit build
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSCRIPTS=static \
+            -DMODULES=static \
+            -DTOOLS_BUILD=none \
+            -DUSE_SCRIPTPCH=OFF \
+            -DUSE_COREPCH=OFF \
+            -DNOPCH=true \
+            -DWITH_WARNINGS=ON
+
+      - name: Compile Mastery-bearing libraries
+        run: cmake --build build --target game scripts -j2
+
+      - name: Commit audited corrections and clean audit files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for f in \
+            tools/mastery_coeff_blood_audit.py \
+            tools/mastery_final_audit_fixes.py \
+            tools/mastery_full_audit_fixes.py \
+            .github/workflows/mastery-coeff-blood-audit.yml \
+            .github/workflows/mastery-final-audit.yml \
+            .github/workflows/mastery-full-audit.yml; do
+            if [ -f "$f" ]; then git rm -f "$f"; fi
+          done
+          git add src/server/scripts/Spells/spell_mastery.cpp
+          git commit -m 'Finish Mastery compile and runtime audit'
+          git push origin feature/mastery-core
