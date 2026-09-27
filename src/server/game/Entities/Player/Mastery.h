@@ -92,12 +92,27 @@ namespace Acore::Mastery
     }
 
     /**
-     * Current total Mastery points. MoP uses 8 base Mastery plus the amount
-     * supplied by Mastery Rating. Aura type 318 will be layered on top later.
+     * Returns flat Mastery points granted by SPELL_AURA_MASTERY (318).
+     * Multiple active effects stack through the core's normal aura-modifier
+     * aggregation rules.
+     */
+    inline float GetMasteryAuraBonus(Player const* player)
+    {
+        if (!player)
+            return 0.0f;
+
+        return float(player->GetTotalAuraModifier(SPELL_AURA_MASTERY));
+    }
+
+    /**
+     * Current total Mastery points.
+     *
+     * MoP model:
+     *   8 base Mastery + Mastery from rating + SPELL_AURA_MASTERY modifiers.
      */
     inline float GetMastery(Player const* player)
     {
-        return BASE_MASTERY + GetMasteryRatingBonus(player);
+        return BASE_MASTERY + GetMasteryRatingBonus(player) + GetMasteryAuraBonus(player);
     }
 }
 
