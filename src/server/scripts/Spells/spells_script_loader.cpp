@@ -24,6 +24,7 @@ void AddSC_mage_spell_scripts();
 void AddSC_mastery_spell_scripts();
 void AddSC_mastery_healing_spell_scripts();
 void AddSC_mastery_periodic_spell_scripts();
+void AddSC_mastery_icicles_spell_scripts();
 void AddSC_paladin_spell_scripts();
 void AddSC_priest_spell_scripts();
 void AddSC_rogue_spell_scripts();
@@ -45,6 +46,7 @@ void AddSpellsScripts()
     AddSC_mastery_spell_scripts();
     AddSC_mastery_healing_spell_scripts();
     AddSC_mastery_periodic_spell_scripts();
+    AddSC_mastery_icicles_spell_scripts();
     AddSC_paladin_spell_scripts();
     AddSC_priest_spell_scripts();
     AddSC_rogue_spell_scripts();
