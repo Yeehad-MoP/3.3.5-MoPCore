@@ -8,8 +8,7 @@
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
@@ -25,6 +24,7 @@ void AddSC_mastery_spell_scripts();
 void AddSC_mastery_healing_spell_scripts();
 void AddSC_mastery_periodic_spell_scripts();
 void AddSC_mastery_icicles_spell_scripts();
+void AddSC_mastery_tank_spell_scripts();
 void AddSC_paladin_spell_scripts();
 void AddSC_priest_spell_scripts();
 void AddSC_rogue_spell_scripts();
@@ -47,6 +47,7 @@ void AddSpellsScripts()
     AddSC_mastery_healing_spell_scripts();
     AddSC_mastery_periodic_spell_scripts();
     AddSC_mastery_icicles_spell_scripts();
+    AddSC_mastery_tank_spell_scripts();
     AddSC_paladin_spell_scripts();
     AddSC_priest_spell_scripts();
     AddSC_rogue_spell_scripts();
