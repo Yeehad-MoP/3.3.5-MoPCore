@@ -14,6 +14,7 @@
 
 #include "DBCStores.h"
 #include "Player.h"
+#include <algorithm>
 
 namespace Acore::Mastery
 {
@@ -40,7 +41,7 @@ namespace Acore::Mastery
 
         for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
         {
-            Item const* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
+            Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
             if (!item || item->IsBroken())
                 continue;
 
