@@ -52,6 +52,49 @@ text = replace_in_class(
     'DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_unshackled_fury::CalculateAmount, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);'
 )
 
+# Discipline absorb spells do not share one effect index in the converted DBC:
+# PW:S / Divine Aegis use effect 0, Spirit Shell / Angelic Bulwark use effect 1.
+start, end, old_disc = class_section(text, 'spell_mastery_shield_discipline')
+new_disc = '''    class spell_mastery_shield_discipline_effect0 : public AuraScript
+    {
+        PrepareAuraScript(spell_mastery_shield_discipline_effect0);
+
+        void CalculateAmount(AuraEffect const*, int32& amount, bool&)
+        {
+            if (Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr)
+                if (Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::PRIEST_DISCIPLINE))
+                    amount = int32(float(amount) * (1.0f + Acore::Mastery::GetMastery(player) * 1.60f / 100.0f));
+        }
+
+        void Register() override
+        {
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_shield_discipline_effect0::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
+        }
+    };
+
+    class spell_mastery_shield_discipline_effect1 : public AuraScript
+    {
+        PrepareAuraScript(spell_mastery_shield_discipline_effect1);
+
+        void CalculateAmount(AuraEffect const*, int32& amount, bool&)
+        {
+            if (Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr)
+                if (Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::PRIEST_DISCIPLINE))
+                    amount = int32(float(amount) * (1.0f + Acore::Mastery::GetMastery(player) * 1.60f / 100.0f));
+        }
+
+        void Register() override
+        {
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_shield_discipline_effect1::CalculateAmount, EFFECT_1, SPELL_AURA_SCHOOL_ABSORB);
+        }
+    };'''
+text = text[:start] + new_disc + text[end:]
+text = text.replace(
+    '    RegisterSpellScript(spell_mastery_shield_discipline);',
+    '    RegisterSpellScript(spell_mastery_shield_discipline_effect0);\n    RegisterSpellScript(spell_mastery_shield_discipline_effect1);',
+    1
+)
+
 # Ignite is a rolling reservoir in MoP. Preserve the remaining damage from the
 # old Ignite before refreshing it, matching the SkyFire 5.4 behavior.
 old_ignite = '''            int32 tickAmount = int32(float(damage) * (Acore::Mastery::GetMastery(player) * 1.50f / 100.0f) / 2.0f);\n            if (tickAmount > 0)\n                player->CastCustomSpell(target, SPELL_MASTERY_IGNITE, &tickAmount, nullptr, nullptr, true);\n'''
@@ -79,10 +122,33 @@ text = text.replace(old_melee_pet, new_melee_pet, 1)
 path.write_text(text)
 
 # ---------------------------------------------------------------------------
-# World SQL - Wild Mushroom: Bloom (heal spell 102792) is a direct Harmony heal.
+# PlayerStorage.cpp - gems/enchants using stat type 49 must feed the separate
+# server-side Mastery accumulator, never the WotLK combat-rating update fields.
+# ---------------------------------------------------------------------------
+path = Path('src/server/game/Entities/Player/PlayerStorage.cpp')
+text = path.read_text()
+old_enchant = '''                        case ITEM_MOD_BLOCK_VALUE:\n                            HandleBaseModFlatValue(SHIELD_BLOCK_VALUE, float(enchant_amount), apply);\n                            LOG_DEBUG("entities.player.items", "+ {} BLOCK_VALUE", enchant_amount);\n                            break;\n                        /// @deprecated item mods\n'''
+new_enchant = '''                        case ITEM_MOD_BLOCK_VALUE:\n                            HandleBaseModFlatValue(SHIELD_BLOCK_VALUE, float(enchant_amount), apply);\n                            LOG_DEBUG("entities.player.items", "+ {} BLOCK_VALUE", enchant_amount);\n                            break;\n                        case ITEM_MOD_MASTERY_RATING:\n                            ApplyMasteryRatingBonus(enchant_amount, apply);\n                            LOG_DEBUG("entities.player.items", "+ {} MASTERY_RATING", enchant_amount);\n                            break;\n                        /// @deprecated item mods\n'''
+if old_enchant not in text:
+    raise SystemExit('PlayerStorage.cpp enchant stat switch anchor not found')
+text = text.replace(old_enchant, new_enchant, 1)
+path.write_text(text)
+
+# ---------------------------------------------------------------------------
+# World SQL - corrected Discipline effect-layout bindings and Harmony Bloom.
 # ---------------------------------------------------------------------------
 path = Path('data/sql/updates/db_world/2026_09_27_00.sql')
 text = path.read_text()
+text = text.replace(
+    "    'spell_mastery_shield_discipline',\n",
+    "    'spell_mastery_shield_discipline',\n    'spell_mastery_shield_discipline_effect0',\n    'spell_mastery_shield_discipline_effect1',\n",
+    1
+)
+old_disc_sql = '''(17,     'spell_mastery_shield_discipline'),\n(123258, 'spell_mastery_shield_discipline'),\n(114908, 'spell_mastery_shield_discipline'),\n(114214, 'spell_mastery_shield_discipline'),\n(47753,  'spell_mastery_shield_discipline'),\n'''
+new_disc_sql = '''(17,     'spell_mastery_shield_discipline_effect0'),\n(123258, 'spell_mastery_shield_discipline_effect0'),\n(47753,  'spell_mastery_shield_discipline_effect0'),\n(114908, 'spell_mastery_shield_discipline_effect1'),\n(114214, 'spell_mastery_shield_discipline_effect1'),\n'''
+if old_disc_sql not in text:
+    raise SystemExit('Discipline SQL binding block not found')
+text = text.replace(old_disc_sql, new_disc_sql, 1)
 old_sql = "(50464,  'spell_mastery_harmony_trigger');"
 new_sql = "(50464,  'spell_mastery_harmony_trigger'),\n(102792, 'spell_mastery_harmony_trigger');"
 if old_sql not in text:
