@@ -14,6 +14,7 @@
 
 #include "DBCStores.h"
 #include "Player.h"
+#include "SpellAuraEffects.h"
 #include <algorithm>
 
 namespace Acore::Mastery
@@ -185,6 +186,20 @@ namespace Acore::Mastery
         return GetMasterySpecializationSpell(player) == masterySpell;
     }
 
+    inline void RecalculateMasterySpecialization(Player* player)
+    {
+        if (!player)
+            return;
+
+        uint32 masterySpell = GetMasterySpecializationSpell(player);
+        if (!masterySpell)
+            return;
+
+        for (uint8 effectIndex = EFFECT_0; effectIndex < MAX_SPELL_EFFECTS; ++effectIndex)
+            if (AuraEffect* effect = player->GetAuraEffect(masterySpell, effectIndex))
+                effect->RecalculateAmount(player);
+    }
+
     /**
      * Returns raw Mastery Rating supplied by currently equipped item_template
      * stats (ITEM_MOD_MASTERY_RATING / stat type 49).
@@ -195,30 +210,7 @@ namespace Acore::Mastery
      */
     inline int32 GetMasteryRating(Player const* player)
     {
-        if (!player)
-            return 0;
-
-        int32 rating = 0;
-
-        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
-        {
-            Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-            if (!item || item->IsBroken())
-                continue;
-
-            ItemTemplate const* itemTemplate = item->GetTemplate();
-            if (!itemTemplate)
-                continue;
-
-            uint32 statCount = std::min<uint32>(itemTemplate->StatsCount, MAX_ITEM_PROTO_STATS);
-            for (uint32 stat = 0; stat < statCount; ++stat)
-            {
-                if (itemTemplate->ItemStat[stat].ItemStatType == ITEM_MOD_MASTERY_RATING)
-                    rating += itemTemplate->ItemStat[stat].ItemStatValue;
-            }
-        }
-
-        return std::max<int32>(rating, 0);
+        return player ? std::max<int32>(player->GetMasteryRatingValue(), 0) : 0;
     }
 
     /**

@@ -162,6 +162,7 @@ public:
     {
         // aura type not have immediate effect at add/remove and handled by ID in other code place
     }
+    void HandleAuraMastery(AuraApplication const* aurApp, uint8 mode, bool apply) const;
     //  visibility & phases
     void HandleModInvisibilityDetect(AuraApplication const* aurApp, uint8 mode, bool apply) const;
     void HandleModInvisibility(AuraApplication const* aurApp, uint8 mode, bool apply) const;

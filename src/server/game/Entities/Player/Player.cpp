@@ -16,6 +16,7 @@
  */
 
 #include "Player.h"
+#include "Mastery.h"
 #include "AccountMgr.h"
 #include "AchievementMgr.h"
 #include "AreaDefines.h"
@@ -323,6 +324,7 @@ Player::Player(WorldSession* session): Unit(), m_mover(this), _cinematicMgr(*thi
     for (uint8 i = 0; i < MAX_COMBAT_RATING; i++)
         m_baseRatingValue[i] = 0;
 
+    m_masteryRating = 0;
     m_baseSpellPower = 0;
     m_baseSpellDamage = 0;
     m_baseSpellHealing = 0;
@@ -6980,6 +6982,9 @@ void Player::_ApplyItemBonuses(ItemTemplate const* proto, uint8 slot, bool apply
             case ITEM_MOD_BLOCK_VALUE:
                 HandleBaseModFlatValue(SHIELD_BLOCK_VALUE, float(val), apply);
                 break;
+            case ITEM_MOD_MASTERY_RATING:
+                ApplyMasteryRatingBonus(int32(val), apply);
+                break;
             /// @deprecated item mods
             case ITEM_MOD_SPELL_HEALING_DONE:
                 ApplySpellHealingBonus(int32(val), apply);
@@ -7072,6 +7077,15 @@ void Player::_ApplyItemBonuses(ItemTemplate const* proto, uint8 slot, bool apply
         if (feral_bonus)
             ApplyFeralAPBonus(feral_bonus, apply);
     }
+}
+
+void Player::ApplyMasteryRatingBonus(int32 amount, bool apply)
+{
+    m_masteryRating += apply ? amount : -amount;
+    if (m_masteryRating < 0)
+        m_masteryRating = 0;
+
+    Acore::Mastery::RecalculateMasterySpecialization(this);
 }
 
 void Player::_ApplyWeaponDamage(uint8 slot, ItemTemplate const* proto, ScalingStatValuesEntry const* ssv, bool apply)
