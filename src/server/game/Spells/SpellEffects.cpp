@@ -233,7 +233,61 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS] =
     &Spell::EffectSpecCount,                                //161 SPELL_EFFECT_TALENT_SPEC_COUNT        second talent spec (learn/revert)
     &Spell::EffectActivateSpec,                             //162 SPELL_EFFECT_TALENT_SPEC_SELECT       activate primary/secondary spec
     &Spell::EffectNULL,                                     //163 unused
-    &Spell::EffectRemoveAura,                               //164 SPELL_EFFECT_REMOVE_AURA
+    &Spell::EffectRemoveAura,                               //164 SPELL_EFFECT_REMOVE_AURA,
+
+    // MOP_COMPAT_EFFECT_HANDLERS_BEGIN
+    // MoP 5.4.8 effect IDs not yet implemented by the 3.3.5 core.
+    // Keep them safe and explicit instead of leaving null function pointers.
+    &Spell::EffectUnused,                                  // 165 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 166 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 167 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 168 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 169 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 170 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 171 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 172 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 173 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 174 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 175 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 176 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 177 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 178 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 179 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 180 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 181 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 182 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 183 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 184 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 185 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 186 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 187 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 188 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 189 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 190 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 191 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 192 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 193 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 194 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 195 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 196 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 197 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 198 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 199 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 200 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 201 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 202 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 203 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 204 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 205 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 206 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 207 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 208 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 209 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 210 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 211 MoP compatibility fallback
+    &Spell::EffectUnused,                                  // 212 MoP compatibility fallback
+    &Spell::EffectUnused                                   // 213 MoP compatibility fallback
+    // MOP_COMPAT_EFFECT_HANDLERS_END
 };
 
 void Spell::EffectNULL(SpellEffIndex /*effIndex*/)

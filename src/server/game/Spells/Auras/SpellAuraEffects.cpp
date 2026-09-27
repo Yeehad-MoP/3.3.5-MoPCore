@@ -381,7 +381,133 @@ pAuraEffectHandler AuraEffectHandler[TOTAL_AURAS] =
     &AuraEffect::HandleNoImmediateEffect,                         //315 SPELL_AURA_UNDERWATER_WALKING todo
     &AuraEffect::HandleNoImmediateEffect,                         //316 SPELL_AURA_PERIODIC_HASTE implemented in AuraEffect::CalculatePeriodic
     &AuraEffect::HandleNoImmediateEffect,                         //317 SPELL_AURA_317 (MoP: SPELL_AURA_MOD_SPELL_POWER_PCT) not implemented yet
-    &AuraEffect::HandleAuraMastery,                              //318 SPELL_AURA_MASTERY refreshes active specialization Mastery effects
+    &AuraEffect::HandleAuraMastery,                              //318 SPELL_AURA_MASTERY refreshes active specialization Mastery effects,
+
+    // MOP_COMPAT_AURA_HANDLERS_BEGIN
+    // MoP 5.4.8 aura IDs not yet implemented by the 3.3.5 core.
+    // Preserve the existing custom Mastery aura IDs 317/318 above.
+    // New IDs are inert rather than null so unsupported mechanics cannot
+    // crash solely by dispatching through a null function pointer.
+    &AuraEffect::HandleNoImmediateEffect,                  // 319 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 320 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 321 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 322 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 323 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 324 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 325 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 326 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 327 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 328 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 329 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 330 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 331 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 332 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 333 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 334 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 335 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 336 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 337 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 338 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 339 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 340 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 341 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 342 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 343 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 344 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 345 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 346 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 347 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 348 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 349 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 350 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 351 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 352 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 353 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 354 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 355 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 356 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 357 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 358 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 359 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 360 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 361 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 362 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 363 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 364 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 365 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 366 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 367 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 368 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 369 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 370 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 371 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 372 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 373 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 374 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 375 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 376 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 377 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 378 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 379 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 380 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 381 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 382 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 383 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 384 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 385 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 386 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 387 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 388 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 389 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 390 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 391 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 392 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 393 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 394 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 395 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 396 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 397 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 398 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 399 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 400 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 401 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 402 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 403 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 404 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 405 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 406 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 407 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 408 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 409 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 410 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 411 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 412 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 413 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 414 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 415 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 416 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 417 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 418 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 419 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 420 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 421 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 422 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 423 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 424 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 425 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 426 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 427 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 428 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 429 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 430 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 431 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 432 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 433 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 434 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 435 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect,                  // 436 MoP compatibility fallback
+    &AuraEffect::HandleNoImmediateEffect                   // 437 MoP compatibility fallback
+    // MOP_COMPAT_AURA_HANDLERS_END
 };
 
 AuraEffect::AuraEffect(Aura* base, uint8 effIndex, int32* baseAmount, Unit* caster):

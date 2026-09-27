@@ -928,7 +928,7 @@ enum SpellEffects
     SPELL_EFFECT_TALENT_SPEC_SELECT                 = 162,
     SPELL_EFFECT_163                                = 163,
     SPELL_EFFECT_REMOVE_AURA                        = 164,
-    TOTAL_SPELL_EFFECTS                             = 165
+    TOTAL_SPELL_EFFECTS                             = 214
 };
 
 // EnumUtils: DESCRIBE THIS
@@ -1515,7 +1515,7 @@ enum Targets
     TARGET_UNK_DEST_AREA_UNK_107       = 107, // not enough info - only generic spells avalible
     TARGET_GAMEOBJECT_CONE             = 108,
     TARGET_DEST_UNK_110                = 110, // 1 spell
-    TOTAL_SPELL_TARGETS
+    TOTAL_SPELL_TARGETS = 144
 };
 
 enum SpellMissInfo
