@@ -15,6 +15,7 @@
 #include <array>
 #include <deque>
 #include <map>
+#include <mutex>
 #include <utility>
 #include <vector>
 
@@ -43,6 +44,7 @@ namespace
     // several Icicles generated inside the same second.
     std::map<ObjectGuid, std::deque<uint8>> IcicleQueues;
     std::map<ObjectGuid, ObjectGuid> IcicleLaunchTargets;
+    std::recursive_mutex IcicleStateMutex;
 
     Aura* GetStoredIcicle(Player* player, uint8 slot)
     {
@@ -57,6 +59,7 @@ namespace
         if (!player)
             return;
 
+        std::lock_guard<std::recursive_mutex> lock(IcicleStateMutex);
         std::deque<uint8>& queue = IcicleQueues[player->GetGUID()];
 
         // Drop queue entries whose storage aura expired or was otherwise
@@ -107,6 +110,7 @@ namespace
         if (!player)
             return;
 
+        std::lock_guard<std::recursive_mutex> lock(IcicleStateMutex);
         ObjectGuid guid = player->GetGUID();
         IcicleQueues.erase(guid);
         IcicleLaunchTargets.erase(guid);
@@ -122,6 +126,7 @@ namespace
         if (!player || !target || !target->IsAlive())
             return -1;
 
+        std::lock_guard<std::recursive_mutex> lock(IcicleStateMutex);
         ReconcileIcicleQueue(player);
         std::deque<uint8>& queue = IcicleQueues[player->GetGUID()];
 
@@ -156,6 +161,7 @@ namespace
         if (!player || !target || damage <= 0)
             return;
 
+        std::lock_guard<std::recursive_mutex> lock(IcicleStateMutex);
         ReconcileIcicleQueue(player);
         std::deque<uint8>& queue = IcicleQueues[player->GetGUID()];
 
@@ -273,7 +279,10 @@ namespace
             if (!Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::MAGE_FROST) || !HasStoredIcicles(player))
                 return;
 
-            IcicleLaunchTargets[player->GetGUID()] = target->GetGUID();
+            {
+                std::lock_guard<std::recursive_mutex> lock(IcicleStateMutex);
+                IcicleLaunchTargets[player->GetGUID()] = target->GetGUID();
+            }
 
             if (Aura* launcher = player->GetAura(SPELL_ICICLE_LAUNCHER))
                 launcher->RefreshDuration();
@@ -300,6 +309,7 @@ namespace
             if (!player)
                 return;
 
+            std::lock_guard<std::recursive_mutex> lock(IcicleStateMutex);
             auto itr = IcicleLaunchTargets.find(player->GetGUID());
             if (itr == IcicleLaunchTargets.end())
             {
@@ -329,7 +339,10 @@ namespace
         void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
             if (Player* player = GetUnitOwner() ? GetUnitOwner()->ToPlayer() : nullptr)
+            {
+                std::lock_guard<std::recursive_mutex> lock(IcicleStateMutex);
                 IcicleLaunchTargets.erase(player->GetGUID());
+            }
         }
 
         void Register() override
