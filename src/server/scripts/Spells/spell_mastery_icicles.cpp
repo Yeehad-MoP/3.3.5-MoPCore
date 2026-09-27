@@ -86,8 +86,8 @@ namespace
             return left.second < right.second;
         });
 
-        for (auto const& [/*applyTime*/, slot] : missing)
-            queue.push_back(slot);
+        for (auto const& entry : missing)
+            queue.push_back(entry.second);
     }
 
     bool HasStoredIcicles(Player* player)
