@@ -23,6 +23,8 @@ DELETE FROM `spell_script_names` WHERE `ScriptName` IN (
     'spell_mastery_natures_guardian',
     'spell_mastery_unshackled_fury',
     'spell_mastery_shield_discipline',
+    'spell_mastery_shield_discipline_effect0',
+    'spell_mastery_shield_discipline_effect1',
     'spell_mastery_blood_shield',
     'spell_mastery_ignite',
     'spell_mastery_hand_of_light',
@@ -70,11 +72,11 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (77484, 'spell_mastery_shield_discipline_passive'),
 (77485, 'spell_mastery_echo_of_light'),
 (77486, 'spell_mastery_shadowy_recall'),
-(17,     'spell_mastery_shield_discipline'),
-(123258, 'spell_mastery_shield_discipline'),
-(114908, 'spell_mastery_shield_discipline'),
-(114214, 'spell_mastery_shield_discipline'),
-(47753,  'spell_mastery_shield_discipline'),
+(17,     'spell_mastery_shield_discipline_effect0'),
+(123258, 'spell_mastery_shield_discipline_effect0'),
+(47753,  'spell_mastery_shield_discipline_effect0'),
+(114908, 'spell_mastery_shield_discipline_effect1'),
+(114214, 'spell_mastery_shield_discipline_effect1'),
 
 -- Death Knight mastery passives / trigger
 (77514, 'spell_mastery_frozen_heart'),
@@ -117,4 +119,5 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (-5185,  'spell_mastery_harmony_trigger'),
 (-8936,  'spell_mastery_harmony_trigger'),
 (18562,  'spell_mastery_harmony_trigger'),
-(50464,  'spell_mastery_harmony_trigger');
+(50464,  'spell_mastery_harmony_trigger'),
+(102792, 'spell_mastery_harmony_trigger');

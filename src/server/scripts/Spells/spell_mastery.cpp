@@ -8,8 +8,10 @@
 #include "Random.h"
 #include "ScriptMgr.h"
 #include "SpellAuraEffects.h"
+#include "SpellInfo.h"
 #include "SpellScript.h"
 #include "SpellScriptLoader.h"
+#include <algorithm>
 
 namespace
 {
@@ -34,6 +36,10 @@ namespace
 
         bool CheckProc(ProcEventInfo& eventInfo)
         {
+            if (SpellInfo const* trigger = eventInfo.GetSpellInfo())
+                if (trigger->Id == SPELL_MASTERY_OPPORTUNITY_STRIKE)
+                    return false;
+
             Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr;
             return player && eventInfo.GetActionTarget() &&
                 Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::WARRIOR_ARMS) &&
@@ -61,6 +67,10 @@ namespace
 
         bool CheckProc(ProcEventInfo& eventInfo)
         {
+            if (SpellInfo const* trigger = eventInfo.GetSpellInfo())
+                if (trigger->Id == SPELL_MASTERY_WILD_QUIVER)
+                    return false;
+
             Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr;
             return player && eventInfo.GetActionTarget() &&
                 Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::HUNTER_MARKSMANSHIP) &&
@@ -88,6 +98,10 @@ namespace
 
         bool CheckProc(ProcEventInfo& eventInfo)
         {
+            if (SpellInfo const* trigger = eventInfo.GetSpellInfo())
+                if (trigger->Id == SPELL_MASTERY_MAIN_GAUCHE)
+                    return false;
+
             Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr;
             return player && eventInfo.GetActionTarget() &&
                 Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::ROGUE_COMBAT) &&
@@ -360,13 +374,13 @@ namespace
 
         void Register() override
         {
-            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_unshackled_fury::CalculateAmount, EFFECT_1, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_unshackled_fury::CalculateAmount, EFFECT_0, SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
         }
     };
 
-    class spell_mastery_shield_discipline : public AuraScript
+    class spell_mastery_shield_discipline_effect0 : public AuraScript
     {
-        PrepareAuraScript(spell_mastery_shield_discipline);
+        PrepareAuraScript(spell_mastery_shield_discipline_effect0);
 
         void CalculateAmount(AuraEffect const*, int32& amount, bool&)
         {
@@ -377,7 +391,24 @@ namespace
 
         void Register() override
         {
-            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_shield_discipline::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_shield_discipline_effect0::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
+        }
+    };
+
+    class spell_mastery_shield_discipline_effect1 : public AuraScript
+    {
+        PrepareAuraScript(spell_mastery_shield_discipline_effect1);
+
+        void CalculateAmount(AuraEffect const*, int32& amount, bool&)
+        {
+            if (Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr)
+                if (Acore::Mastery::HasMasterySpecialization(player, Acore::Mastery::PRIEST_DISCIPLINE))
+                    amount = int32(float(amount) * (1.0f + Acore::Mastery::GetMastery(player) * 1.60f / 100.0f));
+        }
+
+        void Register() override
+        {
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mastery_shield_discipline_effect1::CalculateAmount, EFFECT_1, SPELL_AURA_SCHOOL_ABSORB);
         }
     };
 
@@ -436,6 +467,16 @@ namespace
                 return;
 
             int32 tickAmount = int32(float(damage) * (Acore::Mastery::GetMastery(player) * 1.50f / 100.0f) / 2.0f);
+
+            if (AuraEffect* existing = target->GetAuraEffect(SPELL_MASTERY_IGNITE, EFFECT_0, player->GetGUID()))
+            {
+                uint32 amplitude = std::max<int32>(existing->GetAmplitude(), 1);
+                int32 duration = std::max<int32>(existing->GetBase()->GetDuration(), 0);
+                uint32 remainingTicks = uint32((duration + int32(amplitude) - 1) / int32(amplitude));
+                tickAmount += existing->GetAmount() * int32(remainingTicks);
+                tickAmount = int32(float(tickAmount) * 0.66f);
+            }
+
             if (tickAmount > 0)
                 player->CastCustomSpell(target, SPELL_MASTERY_IGNITE, &tickAmount, nullptr, nullptr, true);
         }
@@ -539,7 +580,8 @@ void AddSC_mastery_spell_scripts()
     RegisterSpellScript(spell_mastery_razor_claws);
     RegisterSpellScript(spell_mastery_natures_guardian);
     RegisterSpellScript(spell_mastery_unshackled_fury);
-    RegisterSpellScript(spell_mastery_shield_discipline);
+    RegisterSpellScript(spell_mastery_shield_discipline_effect0);
+    RegisterSpellScript(spell_mastery_shield_discipline_effect1);
     RegisterSpellScript(spell_mastery_blood_shield);
     RegisterSpellScript(spell_mastery_ignite);
     RegisterSpellScript(spell_mastery_hand_of_light);

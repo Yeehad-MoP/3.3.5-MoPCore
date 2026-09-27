@@ -8574,9 +8574,19 @@ float Unit::SpellPctDamageModsDone(Unit* victim, SpellInfo const* spellProto, Da
     {
         if (Player* ownerPlayer = ownerUnit->ToPlayer())
         {
-            if (Acore::Mastery::HasMasterySpecialization(ownerPlayer, Acore::Mastery::HUNTER_BEAST_MASTERY))
+            // Master of Beasts modifies the hunter's real tamed pet, represented
+            // by Tamed Pet Passive 01 (DND), not every temporary owned summon.
+            bool const isHunterPet = HasAura(8875);
+
+            // Master Demonologist's servant bonus belongs to demon creatures,
+            // not arbitrary guardians or temporary objects owned by the Warlock.
+            Creature* creature = ToCreature();
+            bool const isWarlockDemon = creature && creature->GetCreatureTemplate() &&
+                creature->GetCreatureTemplate()->type == CREATURE_TYPE_DEMON;
+
+            if (isHunterPet && Acore::Mastery::HasMasterySpecialization(ownerPlayer, Acore::Mastery::HUNTER_BEAST_MASTERY))
                 AddPct(DoneTotalMod, Acore::Mastery::GetMastery(ownerPlayer) * 2.0f);
-            else if (Acore::Mastery::HasMasterySpecialization(ownerPlayer, Acore::Mastery::WARLOCK_DEMONOLOGY))
+            else if (isWarlockDemon && Acore::Mastery::HasMasterySpecialization(ownerPlayer, Acore::Mastery::WARLOCK_DEMONOLOGY))
                 AddPct(DoneTotalMod, Acore::Mastery::GetMastery(ownerPlayer));
             else if (Acore::Mastery::HasMasterySpecialization(ownerPlayer, Acore::Mastery::MAGE_FROST) &&
                      (spellProto->Id == 31707 || spellProto->Id == 131581))
@@ -10285,9 +10295,14 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
     {
         if (Player* owner = ownerUnit->ToPlayer())
         {
-            if (Acore::Mastery::HasMasterySpecialization(owner, Acore::Mastery::HUNTER_BEAST_MASTERY))
+            bool const isHunterPet = HasAura(8875);
+            Creature* creature = ToCreature();
+            bool const isWarlockDemon = creature && creature->GetCreatureTemplate() &&
+                creature->GetCreatureTemplate()->type == CREATURE_TYPE_DEMON;
+
+            if (isHunterPet && Acore::Mastery::HasMasterySpecialization(owner, Acore::Mastery::HUNTER_BEAST_MASTERY))
                 AddPct(pdamage, Acore::Mastery::GetMastery(owner) * 2.0f);
-            else if (Acore::Mastery::HasMasterySpecialization(owner, Acore::Mastery::WARLOCK_DEMONOLOGY))
+            else if (isWarlockDemon && Acore::Mastery::HasMasterySpecialization(owner, Acore::Mastery::WARLOCK_DEMONOLOGY))
                 AddPct(pdamage, Acore::Mastery::GetMastery(owner));
         }
     }
