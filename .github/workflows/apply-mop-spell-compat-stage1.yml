@@ -1,0 +1,52 @@
+name: Apply MoP Spell Compatibility Stage 1
+
+on:
+  push:
+    branches:
+      - mop-spell-compat-stage1
+    paths:
+      - tools/mop_spell_compat_stage1.py
+      - .github/workflows/apply-mop-spell-compat-stage1.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: mop-spell-compat-stage1
+          fetch-depth: 0
+
+      - name: Apply Stage 1 spell compatibility patch
+        run: python3 tools/mop_spell_compat_stage1.py
+
+      - name: Validate expected changes
+        run: |
+          grep -q 'TOTAL_SPELL_TARGETS = 144' src/server/shared/SharedDefines.h
+          grep -q 'TOTAL_SPELL_EFFECTS                             = 214' src/server/shared/SharedDefines.h
+          grep -q 'TOTAL_AURAS                                             = 438' src/server/game/Spells/Auras/SpellAuraDefines.h
+          grep -q 'MOP_COMPAT_EFFECT_HANDLERS_BEGIN' src/server/game/Spells/SpellEffects.cpp
+          grep -q 'MOP_COMPAT_AURA_HANDLERS_BEGIN' src/server/game/Spells/Auras/SpellAuraEffects.cpp
+          grep -q 'MOP_COMPAT_TARGET_METADATA_BEGIN' src/server/game/Spells/SpellInfo.cpp
+
+      - name: Commit applied source changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            src/server/shared/SharedDefines.h \
+            src/server/game/Spells/Auras/SpellAuraDefines.h \
+            src/server/game/Spells/SpellEffects.cpp \
+            src/server/game/Spells/Auras/SpellAuraEffects.cpp \
+            src/server/game/Spells/SpellInfo.cpp
+          if git diff --cached --quiet; then
+            echo 'No source changes to commit.'
+          else
+            git commit -m 'Expand core for MoP spell data compatibility'
+            git push origin HEAD:mop-spell-compat-stage1
+          fi
