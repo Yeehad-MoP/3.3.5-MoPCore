@@ -27,6 +27,7 @@ DELETE FROM `spell_script_names` WHERE `ScriptName` IN (
     'spell_mastery_elemental_overload',
     'spell_mastery_illuminated_healing',
     'spell_mastery_echo_of_light',
+    'spell_mastery_shadowy_recall',
     'spell_mastery_harmony_passive',
     'spell_mastery_harmony_periodic_bonus',
     'spell_mastery_harmony_trigger'
@@ -60,6 +61,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 -- Priest mastery passives + absorb triggers
 (77484, 'spell_mastery_shield_discipline_passive'),
 (77485, 'spell_mastery_echo_of_light'),
+(77486, 'spell_mastery_shadowy_recall'),
 (17,     'spell_mastery_shield_discipline'),
 (123258, 'spell_mastery_shield_discipline'),
 (114908, 'spell_mastery_shield_discipline'),
