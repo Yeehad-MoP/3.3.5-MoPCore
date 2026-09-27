@@ -25,6 +25,7 @@
 #include "GameTime.h"
 #include "GridNotifiers.h"
 #include "Log.h"
+#include "Mastery.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Opcodes.h"
@@ -454,8 +455,16 @@ AuraType AuraEffect::GetAuraType() const
 int32 AuraEffect::CalculateAmount(Unit* caster)
 {
     int32 amount;
-    // default amount calculation
-    amount = m_spellInfo->Effects[m_effIndex].CalcValue(caster, &m_baseAmount, nullptr);
+    SpellEffectInfo const& effect = m_spellInfo->Effects[m_effIndex];
+
+    // MoP specialization Masteries store their per-Mastery-point scaling in
+    // EffectBonusMultiplier. Keep the 3.3.5 client update-field layout intact
+    // and calculate the aura amount from the server-side Mastery value instead.
+    if (Player* player = caster ? caster->ToPlayer() : nullptr;
+        player && Acore::Mastery::IsMasterySpecializationSpell(m_spellInfo->Id) && effect.BonusMultiplier != 0.0f)
+        amount = int32(Acore::Mastery::GetMastery(player) * effect.BonusMultiplier);
+    else
+        amount = effect.CalcValue(caster, &m_baseAmount, nullptr);
 
     // check item enchant aura cast
     if (!amount && caster)

@@ -69,6 +69,47 @@ namespace Acore::Mastery
         DRUID_RESTORATION       = 77495
     };
 
+    inline bool IsMasterySpecializationSpell(uint32 spellId)
+    {
+        switch (spellId)
+        {
+            case WARRIOR_ARMS:
+            case WARRIOR_FURY:
+            case WARRIOR_PROTECTION:
+            case PALADIN_HOLY:
+            case PALADIN_PROTECTION:
+            case PALADIN_RETRIBUTION:
+            case HUNTER_BEAST_MASTERY:
+            case HUNTER_MARKSMANSHIP:
+            case HUNTER_SURVIVAL:
+            case ROGUE_ASSASSINATION:
+            case ROGUE_COMBAT:
+            case ROGUE_SUBTLETY:
+            case PRIEST_DISCIPLINE:
+            case PRIEST_HOLY:
+            case PRIEST_SHADOW:
+            case DEATH_KNIGHT_BLOOD:
+            case DEATH_KNIGHT_FROST:
+            case DEATH_KNIGHT_UNHOLY:
+            case SHAMAN_ELEMENTAL:
+            case SHAMAN_ENHANCEMENT:
+            case SHAMAN_RESTORATION:
+            case MAGE_ARCANE:
+            case MAGE_FIRE:
+            case MAGE_FROST:
+            case WARLOCK_AFFLICTION:
+            case WARLOCK_DEMONOLOGY:
+            case WARLOCK_DESTRUCTION:
+            case DRUID_BALANCE:
+            case DRUID_FERAL:
+            case DRUID_GUARDIAN:
+            case DRUID_RESTORATION:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     inline bool IsMasteryAvailable(Player const* player)
     {
         return player && player->GetLevel() >= MIN_MASTERY_LEVEL;
