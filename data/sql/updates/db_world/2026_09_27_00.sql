@@ -26,7 +26,10 @@ DELETE FROM `spell_script_names` WHERE `ScriptName` IN (
     'spell_mastery_hand_of_light',
     'spell_mastery_elemental_overload',
     'spell_mastery_illuminated_healing',
-    'spell_mastery_echo_of_light'
+    'spell_mastery_echo_of_light',
+    'spell_mastery_harmony_passive',
+    'spell_mastery_harmony_periodic_bonus',
+    'spell_mastery_harmony_trigger'
 );
 
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
@@ -85,7 +88,13 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 -- Warlock mastery passive
 (77215, 'spell_mastery_potent_afflictions'),
 
--- Druid mastery passives
-(77492, 'spell_mastery_total_eclipse'),
-(77493, 'spell_mastery_razor_claws'),
-(77494, 'spell_mastery_natures_guardian');
+-- Druid mastery passives / Harmony direct-heal triggers
+(77492,  'spell_mastery_total_eclipse'),
+(77493,  'spell_mastery_razor_claws'),
+(77494,  'spell_mastery_natures_guardian'),
+(77495,  'spell_mastery_harmony_passive'),
+(100977, 'spell_mastery_harmony_periodic_bonus'),
+(-5185,  'spell_mastery_harmony_trigger'),
+(-8936,  'spell_mastery_harmony_trigger'),
+(18562,  'spell_mastery_harmony_trigger'),
+(50464,  'spell_mastery_harmony_trigger');
