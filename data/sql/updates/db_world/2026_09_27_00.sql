@@ -34,7 +34,10 @@ DELETE FROM `spell_script_names` WHERE `ScriptName` IN (
     'spell_mastery_harmony_periodic_bonus',
     'spell_mastery_harmony_trigger',
     'spell_mastery_icicles_store',
-    'spell_mastery_icicles_launch'
+    'spell_mastery_icicle_projectile',
+    'spell_mastery_icicles_launch',
+    'spell_mastery_icicle_launcher',
+    'spell_mastery_icicles_passive'
 );
 
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
@@ -91,9 +94,16 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (108853, 'spell_mastery_ignite'),
 (2948,   'spell_mastery_ignite'),
 (11366,  'spell_mastery_ignite'),
+(76613,  'spell_mastery_icicles_passive'),
 (-116,   'spell_mastery_icicles_store'),
 (44614,  'spell_mastery_icicles_store'),
 (30455,  'spell_mastery_icicles_launch'),
+(148017, 'spell_mastery_icicle_projectile'),
+(148018, 'spell_mastery_icicle_projectile'),
+(148019, 'spell_mastery_icicle_projectile'),
+(148020, 'spell_mastery_icicle_projectile'),
+(148021, 'spell_mastery_icicle_projectile'),
+(148023, 'spell_mastery_icicle_launcher'),
 
 -- Warlock mastery passive
 (77215, 'spell_mastery_potent_afflictions'),
