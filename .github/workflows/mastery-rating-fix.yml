@@ -1,0 +1,39 @@
+name: One-shot Mastery rating conversion fix
+
+on:
+  push:
+    branches: [ feature/mastery-core ]
+    paths:
+      - 'tools/mastery_rating_fix.py'
+      - '.github/workflows/mastery-rating-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/mastery-core
+          fetch-depth: 0
+
+      - name: Apply Mastery rating fix
+        run: python tools/mastery_rating_fix.py
+
+      - name: Validate patch
+        run: |
+          git diff --check
+          grep -q 'case 90: return 600.0f' src/server/game/Entities/Player/Mastery.h
+          grep -q 'Effective ratio' src/server/scripts/Commands/cs_mastery.cpp
+          grep -q 'Effective scalar' src/server/scripts/Commands/cs_mastery.cpp
+
+      - name: Commit fix and clean one-shot files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm tools/mastery_rating_fix.py .github/workflows/mastery-rating-fix.yml
+          git add src/server/game/Entities/Player/Mastery.h src/server/scripts/Commands/cs_mastery.cpp
+          git commit -m 'Fix Mastery rating conversion for MoP levels'
+          git push origin feature/mastery-core
