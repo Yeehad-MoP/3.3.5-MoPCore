@@ -8,6 +8,8 @@ DELETE FROM `spell_script_names` WHERE `ScriptName` IN (
     'spell_mastery_main_gauche',
     'spell_mastery_critical_block',
     'spell_mastery_divine_bulwark',
+    'spell_mastery_divine_bulwark_bastion',
+    'spell_mastery_divine_bulwark_sotr',
     'spell_mastery_essence_of_the_viper',
     'spell_mastery_potent_poisons',
     'spell_mastery_executioner',
@@ -42,13 +44,15 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (12880, 'spell_mastery_unshackled_fury'),
 
 -- Paladin mastery passives / triggers
-(76669, 'spell_mastery_illuminated_healing'),
-(76671, 'spell_mastery_divine_bulwark'),
-(35395, 'spell_mastery_hand_of_light'),
-(53595, 'spell_mastery_hand_of_light'),
-(24275, 'spell_mastery_hand_of_light'),
-(85256, 'spell_mastery_hand_of_light'),
-(53385, 'spell_mastery_hand_of_light'),
+(76669,  'spell_mastery_illuminated_healing'),
+(76671,  'spell_mastery_divine_bulwark'),
+(114637, 'spell_mastery_divine_bulwark_bastion'),
+(132403, 'spell_mastery_divine_bulwark_sotr'),
+(35395,  'spell_mastery_hand_of_light'),
+(53595,  'spell_mastery_hand_of_light'),
+(24275,  'spell_mastery_hand_of_light'),
+(85256,  'spell_mastery_hand_of_light'),
+(53385,  'spell_mastery_hand_of_light'),
 
 -- Hunter mastery passives
 (76659, 'spell_mastery_wild_quiver'),
