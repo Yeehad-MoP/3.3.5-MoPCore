@@ -57,8 +57,8 @@ jobs:
             -DNOPCH=true \
             -DWITH_WARNINGS=ON
 
-      - name: Compile worldserver
-        run: cmake --build build --target worldserver -j2
+      - name: Compile Mastery-bearing libraries
+        run: cmake --build build --target game scripts -j2
 
       - name: Commit audited fixes and clean temporary runners
         run: |
