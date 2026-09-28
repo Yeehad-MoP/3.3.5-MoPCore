@@ -557,13 +557,12 @@ void WorldSession::HandleCancelCastOpcode(WorldPacket& recvPacket)
     recvPacket >> spellId;
 
     // The 3.3.5 client does not understand MoP SPELL_AURA_CAST_WHILE_WALKING
-    // and can send CMSG_CANCEL_CAST as soon as movement begins. The server is
-    // authoritative for Aura 330, so ignore that movement-generated cancel
-    // only when the active spell is actually affected by the aura.
-    if (_player->isMoving())
-        if (Spell* currentSpell = _player->FindCurrentSpellBySpellId(spellId))
-            if (_player->HasAuraTypeWithAffectMask(SPELL_AURA_CAST_WHILE_WALKING, currentSpell->m_spellInfo))
-                return;
+    // and can send CMSG_CANCEL_CAST before its movement opcode reaches the
+    // server. Do not depend on _player->isMoving() here: packet ordering can
+    // otherwise cancel a valid Aura 330 cast before movement state is updated.
+    if (Spell* currentSpell = _player->FindCurrentSpellBySpellId(spellId))
+        if (_player->HasAuraTypeWithAffectMask(SPELL_AURA_CAST_WHILE_WALKING, currentSpell->m_spellInfo))
+            return;
 
     _player->SpellQueue.clear();
 
