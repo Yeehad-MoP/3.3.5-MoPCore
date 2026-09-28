@@ -1,0 +1,42 @@
+name: Apply MoP Aura 330 Support
+
+on:
+  push:
+    branches:
+      - mop-spell-compat-stage1
+    paths:
+      - tools/mop_aura330_cast_while_moving.py
+      - .github/workflows/apply-mop-aura330.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: mop-spell-compat-stage1
+          fetch-depth: 0
+
+      - name: Apply Aura 330 patch
+        run: python3 tools/mop_aura330_cast_while_moving.py
+
+      - name: Validate expected changes
+        run: |
+          grep -q "SPELL_AURA_CAST_WHILE_WALKING.*= 330" src/server/game/Spells/Auras/SpellAuraDefines.h
+          grep -q "HasAuraTypeWithAffectMask(SPELL_AURA_CAST_WHILE_WALKING, m_spellInfo)" src/server/game/Spells/Spell.cpp
+
+      - name: Commit applied source changes
+        run: |
+          if git diff --quiet; then
+            echo "No source changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/server/game/Spells/Auras/SpellAuraDefines.h src/server/game/Spells/Spell.cpp
+          git commit -m "Implement MoP Aura 330 cast while moving"
+          git push origin HEAD:mop-spell-compat-stage1
