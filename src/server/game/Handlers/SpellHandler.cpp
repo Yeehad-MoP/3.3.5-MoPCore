@@ -556,6 +556,15 @@ void WorldSession::HandleCancelCastOpcode(WorldPacket& recvPacket)
     recvPacket.read_skip<uint8>();                          // counter, increments with every CANCEL packet, don't use for now
     recvPacket >> spellId;
 
+    // The 3.3.5 client does not understand MoP SPELL_AURA_CAST_WHILE_WALKING
+    // and can send CMSG_CANCEL_CAST as soon as movement begins. The server is
+    // authoritative for Aura 330, so ignore that movement-generated cancel
+    // only when the active spell is actually affected by the aura.
+    if (_player->isMoving())
+        if (Spell* currentSpell = _player->FindCurrentSpellBySpellId(spellId))
+            if (_player->HasAuraTypeWithAffectMask(SPELL_AURA_CAST_WHILE_WALKING, currentSpell->m_spellInfo))
+                return;
+
     _player->SpellQueue.clear();
 
     _player->InterruptSpell(CURRENT_MELEE_SPELL);
