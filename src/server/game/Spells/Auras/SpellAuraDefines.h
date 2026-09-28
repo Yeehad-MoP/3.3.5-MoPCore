@@ -379,6 +379,7 @@ enum AuraType
     SPELL_AURA_PERIODIC_HASTE                               = 316,
     SPELL_AURA_317                                          = 317,
     SPELL_AURA_MASTERY                                      = 318,
+    SPELL_AURA_CAST_WHILE_WALKING                           = 330,
     TOTAL_AURAS                                             = 438
 };
 
