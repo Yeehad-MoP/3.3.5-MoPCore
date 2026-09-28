@@ -3,6 +3,7 @@ from pathlib import Path
 
 AURA = Path("src/server/game/Spells/Auras/SpellAuraDefines.h")
 SPELL = Path("src/server/game/Spells/Spell.cpp")
+UNIT = Path("src/server/game/Entities/Unit/Unit.cpp")
 
 
 def replace_once(text, old, new, label):
@@ -37,7 +38,19 @@ def main():
 
     SPELL.write_text(spell, encoding="utf-8", newline="\n")
 
-    print("Aura 330 cast-while-moving support applied.")
+    unit = UNIT.read_text(encoding="utf-8")
+
+    old_aura_interrupt = """        if ((aura->GetSpellInfo()->AuraInterruptFlags & flag) && (!except || aura->GetId() != except))\n        {\n"""
+    new_aura_interrupt = """        if ((aura->GetSpellInfo()->AuraInterruptFlags & flag) && (!except || aura->GetId() != except) &&\n            !(flag & AURA_INTERRUPT_FLAG_MOVE && HasAuraTypeWithAffectMask(SPELL_AURA_CAST_WHILE_WALKING, aura->GetSpellInfo())))\n        {\n"""
+    unit = replace_once(unit, old_aura_interrupt, new_aura_interrupt, "Movement aura interrupt exemption")
+
+    old_channel_interrupt = """        if (spell->getState() == SPELL_STATE_CASTING && (spell->m_spellInfo->ChannelInterruptFlags & flag) && spell->m_spellInfo->Id != except)\n        {\n"""
+    new_channel_interrupt = """        if (spell->getState() == SPELL_STATE_CASTING && (spell->m_spellInfo->ChannelInterruptFlags & flag) && spell->m_spellInfo->Id != except &&\n            !(flag & AURA_INTERRUPT_FLAG_MOVE && HasAuraTypeWithAffectMask(SPELL_AURA_CAST_WHILE_WALKING, spell->GetSpellInfo())))\n        {\n"""
+    unit = replace_once(unit, old_channel_interrupt, new_channel_interrupt, "Movement channel interrupt exemption")
+
+    UNIT.write_text(unit, encoding="utf-8", newline="\n")
+
+    print("Aura 330 cast-while-moving support applied, including movement-start preservation.")
 
 
 if __name__ == "__main__":
