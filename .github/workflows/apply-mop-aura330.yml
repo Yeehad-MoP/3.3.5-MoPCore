@@ -28,6 +28,8 @@ jobs:
         run: |
           grep -q "SPELL_AURA_CAST_WHILE_WALKING.*= 330" src/server/game/Spells/Auras/SpellAuraDefines.h
           grep -q "HasAuraTypeWithAffectMask(SPELL_AURA_CAST_WHILE_WALKING, m_spellInfo)" src/server/game/Spells/Spell.cpp
+          grep -q "HasAuraTypeWithAffectMask(SPELL_AURA_CAST_WHILE_WALKING, aura->GetSpellInfo())" src/server/game/Entities/Unit/Unit.cpp
+          grep -q "HasAuraTypeWithAffectMask(SPELL_AURA_CAST_WHILE_WALKING, spell->GetSpellInfo())" src/server/game/Entities/Unit/Unit.cpp
 
       - name: Commit applied source changes
         run: |
@@ -37,6 +39,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/server/game/Spells/Auras/SpellAuraDefines.h src/server/game/Spells/Spell.cpp
-          git commit -m "Implement MoP Aura 330 cast while moving"
+          git add src/server/game/Spells/Auras/SpellAuraDefines.h src/server/game/Spells/Spell.cpp src/server/game/Entities/Unit/Unit.cpp
+          git commit -m "Complete MoP Aura 330 movement handling"
           git push origin HEAD:mop-spell-compat-stage1
